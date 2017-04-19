@@ -65,7 +65,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     @Override
     public void onResume() {
         super.onResume();
-        if (mApiClient ==null) {
+        if (mApiClient == null) {
             buildGoogleApi();
         }
         mLocationRequest = LocationRequest.create()
@@ -85,7 +85,6 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.v(TAG, "Connection Failed " + connectionResult.getErrorMessage());
-
     }
 
     @Override
@@ -98,7 +97,6 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     public void onConnectionSuspended(int i) {
         Log.v(TAG, "Connection Suspended");
         mApiClient.disconnect();
-
     }
 
     @Override
