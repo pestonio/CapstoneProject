@@ -30,8 +30,6 @@ import java.util.Locale;
 public class HomePageOneFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private static final String TAG = HomePageOneFragment.class.getSimpleName();
-
-
     private GoogleApiClient mApiClient;
     private final static int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 1;
     private static double LATITUDE = 0;
@@ -60,7 +58,6 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                 .enableAutoManage(getActivity(), this)
                 .build();
     }
-
 
     @Override
     public void onResume() {
