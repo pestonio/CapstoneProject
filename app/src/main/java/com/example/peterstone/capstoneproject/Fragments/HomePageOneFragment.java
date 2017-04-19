@@ -49,6 +49,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         return inflater.inflate(R.layout.current_location_fragment, container, false);
     }
 
+
     protected synchronized void buildGoogleApi() {
         mApiClient = new GoogleApiClient
                 .Builder(getContext())
@@ -60,11 +61,13 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                 .build();
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
-        buildGoogleApi();
-//        mApiClient.connect();
+        if (mApiClient ==null) {
+            buildGoogleApi();
+        }
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                 .setInterval(10 * 1000)
@@ -94,7 +97,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     @Override
     public void onConnectionSuspended(int i) {
         Log.v(TAG, "Connection Suspended");
-        mApiClient.connect();
+        mApiClient.disconnect();
 
     }
 
