@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,10 +28,14 @@ import com.android.volley.toolbox.Volley;
 import com.example.peterstone.capstoneproject.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
 
 import org.json.JSONObject;
 
@@ -57,6 +62,58 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         return inflater.inflate(R.layout.current_location_fragment, container, false);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+        String savedLocation = sharedPreferences.getString(getString(R.string.last_known_current_location), null);
+        Log.v(TAG, "onResume location: " + savedLocation);
+        userLocation = (TextView) getActivity().findViewById(R.id.current_place_name);
+        final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) getActivity().findViewById(R.id.swipe_refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (mApiClient != null && mApiClient.isConnected()){
+                    getCurrentLocation();
+                    swipeRefreshLayout.setRefreshing(false);
+
+                }else {
+                    buildGoogleApi();
+                    mApiClient.connect();
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+            }
+        });
+        if (savedLocation == null || savedLocation.equals(getString(R.string.unknown_location))) {
+            buildGoogleApi();
+            mApiClient.connect();
+            Log.v(TAG, "onResume build called");
+        } else {
+            updateLocationName(savedLocation);
+        }
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setInterval(10 * 1000)
+                .setFastestInterval(1000);
+        
+        SupportPlaceAutocompleteFragment autocompleteFragment = (SupportPlaceAutocompleteFragment)
+                getActivity().getSupportFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.getName());
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });
+    }
+
     protected synchronized void buildGoogleApi() {
         mApiClient = new GoogleApiClient
                 .Builder(getContext())
@@ -69,27 +126,10 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        SharedPreferences preferences = getActivity().getPreferences(Context.MODE_PRIVATE);
-        String currentLocation = preferences.getString(getString(R.string.last_known_current_location), null);
-        if (currentLocation == null || currentLocation.equals(getString(R.string.unknown_location))) {
-            if (mApiClient == null) {
-                buildGoogleApi();
-                mApiClient.connect();
-                mLocationRequest = LocationRequest.create()
-                        .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                        .setInterval(10 * 1000)
-                        .setFastestInterval(1000);
-                userLocation = (TextView) getActivity().findViewById(R.id.current_place_name);
-            }
-        }
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
-        if (mApiClient.isConnected()) {
+        if (mApiClient != null && mApiClient.isConnected()) {
+            mApiClient.stopAutoManage(getActivity());
             mApiClient.disconnect();
         }
     }
@@ -110,6 +150,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         Log.v(TAG, "Connection Suspended");
         mApiClient.disconnect();
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -159,7 +200,6 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         }
         getLocationJsonResponse(currentPlace);
         addLocationToSharedPreferences(currentPlace);
-        updateLocationName(currentPlace);
     }
 
     private void addLocationToSharedPreferences(String currentPlace) {
@@ -167,6 +207,8 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(getString(R.string.last_known_current_location), currentPlace);
         editor.apply();
+        Log.v(TAG, "Current sharedPref is: " + currentPlace);
+        updateLocationName(currentPlace);
     }
 
     @Override
@@ -185,8 +227,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     private void getLocationJsonResponse(String location) {
         if (location != null && !location.equals(getString(R.string.unknown_location))) {
             RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
-            String url = getString(R.string.webservice_base_url) + getString(R.string.webservice_api_key) + getString(R.string.webservice_query) + "Vatican";
-//                    location.replaceAll(" ", "%20");
+            String url = getString(R.string.webservice_base_url) + getString(R.string.webservice_api_key) + getString(R.string.webservice_query) + location.replaceAll(" ", "%20");
             JsonObjectRequest objectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
