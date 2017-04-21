@@ -1,6 +1,8 @@
 package com.example.peterstone.capstoneproject.Fragments;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -14,7 +16,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.peterstone.capstoneproject.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -22,6 +31,8 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
+
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,10 +43,9 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     private static final String TAG = HomePageOneFragment.class.getSimpleName();
     private GoogleApiClient mApiClient;
     private final static int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 1;
-    private static double LATITUDE = 0;
-    private static double LONGITUDE = 0;
     private LocationRequest mLocationRequest;
-    private static String currentPlace = null;
+
+    TextView userLocation;
 
     public HomePageOneFragment() {
         // Required empty public constructor
@@ -46,7 +56,6 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.current_location_fragment, container, false);
     }
-
 
     protected synchronized void buildGoogleApi() {
         mApiClient = new GoogleApiClient
@@ -62,13 +71,19 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     @Override
     public void onResume() {
         super.onResume();
-        if (mApiClient == null) {
-            buildGoogleApi();
+        SharedPreferences preferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+        String currentLocation = preferences.getString(getString(R.string.last_known_current_location), null);
+        if (currentLocation == null || currentLocation.equals(getString(R.string.unknown_location))) {
+            if (mApiClient == null) {
+                buildGoogleApi();
+                mApiClient.connect();
+                mLocationRequest = LocationRequest.create()
+                        .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                        .setInterval(10 * 1000)
+                        .setFastestInterval(1000);
+                userLocation = (TextView) getActivity().findViewById(R.id.current_place_name);
+            }
         }
-        mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setInterval(10 * 1000)
-                .setFastestInterval(1000);
     }
 
     @Override
@@ -107,7 +122,8 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         }
     }
 
-    public String getCurrentLocation() {
+    public void getCurrentLocation() {
+        String currentPlace = null;
         if (mApiClient.isConnected()) {
             if (ActivityCompat.checkSelfPermission(getActivity().getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(getActivity(),
@@ -117,11 +133,11 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
                 Log.v(TAG, "The last location is: " + mLastLocation);
                 if (mLastLocation != null) {
-                    LATITUDE = mLastLocation.getLatitude();
-                    LONGITUDE = mLastLocation.getLongitude();
+                    double latitude = mLastLocation.getLatitude();
+                    double longitude = mLastLocation.getLongitude();
                     Geocoder geocoder = new Geocoder(getActivity().getApplicationContext(), Locale.getDefault());
                     try {
-                        List<Address> addresses = geocoder.getFromLocation(LATITUDE, LONGITUDE, 1);
+                        List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
                         if (addresses.size() > 0) {
                             String locality = addresses.get(0).getLocality();
                             String country = addresses.get(0).getCountryName();
@@ -134,15 +150,23 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                 }
                 if (mLastLocation == null) {
                     LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, this);
-                    Log.v(TAG, "requestLocationUpdates called");
                 }
-
             }
             Log.v(TAG, "The current place is: " + currentPlace);
-            return currentPlace;
+            if (currentPlace == null) {
+                currentPlace = getString(R.string.unknown_location);
+            }
         }
-        Log.v(TAG, "API is null");
-        return null;
+        getLocationJsonResponse(currentPlace);
+        addLocationToSharedPreferences(currentPlace);
+        updateLocationName(currentPlace);
+    }
+
+    private void addLocationToSharedPreferences(String currentPlace) {
+        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(getString(R.string.last_known_current_location), currentPlace);
+        editor.apply();
     }
 
     @Override
@@ -150,4 +174,32 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         Log.v(TAG, "New Location " + location);
     }
 
+    public void updateLocationName(String currentPlace) {
+        //TODO update entire fragment UI based on current location AND the parsed JSON response.
+        if (currentPlace == null) {
+            currentPlace = getString(R.string.unknown_location);
+        }
+        userLocation.setText(currentPlace);
+    }
+
+    private void getLocationJsonResponse(String location) {
+        if (location != null && !location.equals(getString(R.string.unknown_location))) {
+            RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
+            String url = getString(R.string.webservice_base_url) + getString(R.string.webservice_api_key) + getString(R.string.webservice_query) + "Vatican";
+//                    location.replaceAll(" ", "%20");
+            JsonObjectRequest objectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.v(TAG, "JSON Response: " + response.toString());
+                    //TODO parse JSON response and pull out ID and image, update UI.
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.v(TAG, "Volley Error is: " + error);
+                }
+            });
+            queue.add(objectRequest);
+        }
+    }
 }
