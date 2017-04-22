@@ -11,4 +11,5 @@
     <string name="webservice_base_url">https://maps.googleapis.com/maps/api/place/textsearch/json?key=</string>
     <string name="webservice_query"><![CDATA[&query=]]></string>
     <string name="last_known_current_location">lastKnownLocation</string>
+    <string name="current_place_id">current_place_id</string>
 </resources>
