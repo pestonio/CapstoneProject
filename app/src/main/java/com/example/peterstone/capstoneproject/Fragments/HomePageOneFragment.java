@@ -2,6 +2,7 @@ package com.example.peterstone.capstoneproject.Fragments;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -19,6 +20,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Html;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.Base64;
 import android.util.Log;
@@ -26,6 +28,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -35,6 +38,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.peterstone.capstoneproject.LocationDetails;
 import com.example.peterstone.capstoneproject.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -93,6 +97,9 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
             public void onPlaceSelected(Place place) {
                 Log.i(TAG, "Place: " + place.getName());
                 Log.i(TAG, "Place ID: " + place.getId());
+                Intent locationSelectedIntent = new Intent(getActivity(), LocationDetails.class);
+                locationSelectedIntent.putExtra("origin", 102);
+                startActivity(locationSelectedIntent);
             }
 
             @Override
@@ -107,22 +114,16 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     public void onResume() {
         super.onResume();
         textIsClicked = false;
-        mUserLocation = (TextView) getActivity().findViewById(R.id.current_place_name);
-        mImageView = (ImageView) getActivity().findViewById(R.id.current_place_image);
-        mAttText = (TextView) getActivity().findViewById(R.id.image_attributions);
-        mAttTextBase = (TextView) getActivity().findViewById(R.id.photo_attr_title);
-        mImageProgressBar = (ProgressBar) getActivity().findViewById(R.id.image_load_progress);
-        mLocationText=(TextView) getActivity().findViewById(R.id.current_place_text);
+        initialiseViews();
         mLocationText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (textIsClicked) {
-                    mLocationText.setMaxLines(10);
+                    mLocationText.setMaxLines(5);
                     textIsClicked = false;
                 }else {
                     mLocationText.setMaxLines(Integer.MAX_VALUE);
                     textIsClicked=true;
-
                 }
             }
         });
@@ -160,6 +161,26 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                 .addApi(LocationServices.API)
                 .enableAutoManage(getActivity(), this)
                 .build();
+    }
+
+    private void initialiseViews(){
+        mUserLocation = (TextView) getActivity().findViewById(R.id.current_place_name);
+        mImageView = (ImageView) getActivity().findViewById(R.id.current_place_image);
+        mAttText = (TextView) getActivity().findViewById(R.id.image_attributions);
+        mAttTextBase = (TextView) getActivity().findViewById(R.id.photo_attr_title);
+        mImageProgressBar = (ProgressBar) getActivity().findViewById(R.id.image_load_progress);
+        mLocationText=(TextView) getActivity().findViewById(R.id.current_place_text);
+        mLocationText.setEllipsize(TextUtils.TruncateAt.END);
+        mLocationText.setMaxLines(5);
+        LinearLayout currentLayout = (LinearLayout) getActivity().findViewById(R.id.current_card_view);
+        currentLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent locationIntent = new Intent(getActivity(), LocationDetails.class);
+                locationIntent.putExtra("origin", 101);
+                startActivity(locationIntent);
+            }
+        });
     }
 
     @Override
@@ -210,6 +231,9 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     MY_PERMISSIONS_REQUEST_FINE_LOCATION);
             permissionRequests++;
+            mLocationText.setText(R.string.permission_denied);
+            mUserLocation.setText(R.string.permission_denied);
+            mImageProgressBar.setVisibility(View.GONE);
             Log.i(TAG, "Permission Requested: " + permissionRequests);
         } else if (mApiClient.isConnected()) {
             Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
@@ -225,7 +249,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                         String country = addresses.get(0).getCountryName();
                         Log.v(TAG, "Address Data: " + locality + " + " + country);
                         currentPlace = locality + " - " + country;
-                        SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+                        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
                         String savedLocation = sharedPreferences.getString(getString(R.string.last_known_current_location), null);
                         if (currentPlace.equals(savedLocation)) {
                             Log.i(TAG, "sharedPref and currentPlace Match");
@@ -251,7 +275,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     }
 
     private void addLocationToSharedPreferences(String currentPlace) {
-        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = getActivity().getSharedPreferences("current_location_preferences",Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(getString(R.string.last_known_current_location), currentPlace);
         editor.apply();
@@ -273,7 +297,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
 
     public void updateLocationFromPref() {
         mImageProgressBar.setVisibility(View.VISIBLE);
-        SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
         String encoded = sharedPreferences.getString(getString(R.string.current_location_image), null);
         if (encoded == null){
             return;
@@ -308,7 +332,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                         JSONArray results = response.getJSONArray("results");
                         JSONObject resultsObject = results.getJSONObject(0);
                         String placeId = resultsObject.getString("place_id");
-                        SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+                        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString(getString(R.string.current_place_id), placeId);
                         editor.apply();
@@ -349,7 +373,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                     currentLocationImage.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
                     byte[] bytes = byteArrayOutputStream.toByteArray();
                     String encodedImage = Base64.encodeToString(bytes, Base64.DEFAULT);
-                    SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString(getString(R.string.current_location_image), encodedImage);
                     editor.apply();
@@ -454,7 +478,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                     String extractText = extract.getString("extract").replaceAll("\n", "\n\n");
                     Log.v(TAG, extractText);
                     mLocationText.setText(extractText);
-                    SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString(getString(R.string.current_location_text), extractText);
                     editor.apply();
