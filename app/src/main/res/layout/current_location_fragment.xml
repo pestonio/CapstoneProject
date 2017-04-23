@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/swipe_refresh_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/swipe_refresh_layout">
+    android:layout_height="match_parent">
 
     <ScrollView
         android:layout_width="wrap_content"
@@ -19,31 +18,72 @@
             <android.support.v7.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp">
+                android:padding="16dp"
+                android:layout_marginTop="16dp">
 
                 <FrameLayout
+                    android:id="@+id/autocomplete_container"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:id="@+id/autocomplete_container">
+                    android:layout_height="40dp">
                 </FrameLayout>
             </android.support.v7.widget.CardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/current_location_xml_text"
+                android:paddingStart="8dp"
+                android:paddingLeft="8dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="4dp"/>
 
             <android.support.v7.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
-                android:layout_margin="16dp">
+                android:padding="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
-                    <ImageView
-                        android:id="@+id/current_place_image"
-                        android:layout_width="match_parent"
-                        android:layout_height="200dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/placeholder" />
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:id="@+id/current_place_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:scaleType="centerCrop"
+                            tools:src="@drawable/placeholder" />
+
+                        <ProgressBar
+                            android:id="@+id/image_load_progress"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            />
+                        <TextView
+                            android:id="@+id/photo_attr_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            tools:text="Photo: "
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginLeft="8dp" />
+                        <TextView
+                            android:id="@+id/image_attributions"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            tools:text="Photo Attributions"
+                            android:textSize="12sp"
+                            android:textColorLink="#FFFFFF"                            android:layout_toRightOf="@id/photo_attr_title"
+                            android:layout_toEndOf="@id/photo_attr_title"
+                            />
+                    </RelativeLayout>
+
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -58,7 +98,8 @@
                             android:layout_centerVertical="true"
                             android:layout_marginLeft="20dp"
                             android:layout_marginStart="20dp"
-                            android:text="Location Name"></TextView>
+                            tools:text="Location Name">
+                        </TextView>
 
                         <ImageView
                             android:id="@+id/imageView"
@@ -67,9 +108,9 @@
                             android:layout_alignParentEnd="true"
                             android:layout_alignParentRight="true"
                             android:layout_centerVertical="true"
-                            android:layout_marginEnd="10dp"
-                            android:layout_marginRight="10dp"
-                            android:src="@drawable/ic_my_location_black_24dp" />
+                            android:layout_marginEnd="20dp"
+                            android:layout_marginRight="20dp"
+                            android:tint="#616161" android:src="@drawable/ic_my_location_black_24dp" />
 
                     </RelativeLayout>
 
@@ -82,9 +123,10 @@
                 android:id="@+id/current_place_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
+                android:padding="16dp"
                 android:maxLines="10"
-                android:text="@string/mock_text" />
+                android:background="#EEEEEE"
+                tools:text="@string/mock_text" />
 
         </LinearLayout>
     </ScrollView>

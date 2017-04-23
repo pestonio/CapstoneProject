@@ -12,4 +12,9 @@
     <string name="webservice_query"><![CDATA[&query=]]></string>
     <string name="last_known_current_location">lastKnownLocation</string>
     <string name="current_place_id">current_place_id</string>
+    <string name="current_location_image">current_location_image</string>
+    <string name="current_location_image_attrib">current_attributions</string>
+    <string name="attribution_title_photo">"Photo: "</string>
+    <string name="current_location_text">current_location_text</string>
+    <string name="current_location_xml_text">Current Location</string>
 </resources>
