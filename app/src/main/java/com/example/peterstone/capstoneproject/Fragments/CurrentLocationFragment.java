@@ -29,7 +29,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -60,13 +59,12 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-public class HomePageOneFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class CurrentLocationFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    private static final String TAG = HomePageOneFragment.class.getSimpleName();
+    private static final String TAG = CurrentLocationFragment.class.getSimpleName();
     private final static int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 1;
     private GoogleApiClient mApiClient;
     private LocationRequest mLocationRequest;
@@ -75,12 +73,12 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     private ImageView mImageView;
     private TextView mAttText;
     private TextView mAttTextBase;
-    private ProgressBar mImageProgressBar;
+//    private ProgressBar mImageProgressBar;
     private TextView mLocationText;
     private boolean textIsClicked = false;
 
 
-    public HomePageOneFragment() {
+    public CurrentLocationFragment() {
         // Required empty public constructor
     }
 
@@ -111,8 +109,8 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onStart() {
+        super.onStart();
         textIsClicked = false;
         initialiseViews();
         mLocationText.setOnClickListener(new View.OnClickListener() {
@@ -143,8 +141,16 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                 }
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
         buildGoogleApi();
-        mApiClient.connect();
+        if (mApiClient != null && !mApiClient.isConnected()) {
+            mApiClient.connect();
+        }
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                 .setInterval(10 * 1000)
@@ -168,8 +174,8 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         mImageView = (ImageView) getActivity().findViewById(R.id.current_place_image);
         mAttText = (TextView) getActivity().findViewById(R.id.image_attributions);
         mAttTextBase = (TextView) getActivity().findViewById(R.id.photo_attr_title);
-        mImageProgressBar = (ProgressBar) getActivity().findViewById(R.id.image_load_progress);
-        mLocationText=(TextView) getActivity().findViewById(R.id.current_place_text);
+//        mImageProgressBar = (ProgressBar) getActivity().findViewById(R.id.image_load_progress);
+//        mLocationText=(TextView) getActivity().findViewById(R.id.current_place_text);
         mLocationText.setEllipsize(TextUtils.TruncateAt.END);
         mLocationText.setMaxLines(5);
         LinearLayout currentLayout = (LinearLayout) getActivity().findViewById(R.id.current_card_view);
@@ -218,6 +224,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_FINE_LOCATION: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.v(TAG, "Permission Granted!");
                     getCurrentLocation();
                 }
             }
@@ -233,11 +240,10 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
             permissionRequests++;
             mLocationText.setText(R.string.permission_denied);
             mUserLocation.setText(R.string.permission_denied);
-            mImageProgressBar.setVisibility(View.GONE);
+//            mImageProgressBar.setVisibility(View.GONE);
             Log.i(TAG, "Permission Requested: " + permissionRequests);
         } else if (mApiClient.isConnected()) {
             Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-            Log.v(TAG, "The last location is: " + mLastLocation);
             if (mLastLocation != null) {
                 double latitude = mLastLocation.getLatitude();
                 double longitude = mLastLocation.getLongitude();
@@ -247,8 +253,9 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                     if (addresses.size() > 0) {
                         String locality = addresses.get(0).getLocality();
                         String country = addresses.get(0).getCountryName();
-                        Log.v(TAG, "Address Data: " + locality + " + " + country);
-                        currentPlace = locality + " - " + country;
+                        String adminArea = addresses.get(0).getAdminArea();
+                        Log.v(TAG, "Address Data: " + locality + " + " + adminArea + country);
+                        currentPlace = locality + " " + country;
                         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
                         String savedLocation = sharedPreferences.getString(getString(R.string.last_known_current_location), null);
                         if (currentPlace.equals(savedLocation)) {
@@ -260,7 +267,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                             getCurrentPlaceId(currentPlace);
                             addLocationToSharedPreferences(currentPlace);
                             updateLocationName(currentPlace);
-                            getLocationWikiIntro(currentPlace);
+//                            getLocationWikiIntro(currentPlace);
                         }
                     }
                 } catch (IOException e) {
@@ -296,8 +303,8 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
     }
 
     public void updateLocationFromPref() {
-        mImageProgressBar.setVisibility(View.VISIBLE);
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
+//        mImageProgressBar.setVisibility(View.VISIBLE);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences(getString(R.string.current_location_preferences), Context.MODE_PRIVATE);
         String encoded = sharedPreferences.getString(getString(R.string.current_location_image), null);
         if (encoded == null){
             return;
@@ -312,7 +319,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
             mAttTextBase.setText(R.string.attribution_title_photo);
             mAttText.setText(Html.fromHtml(sharedPreferences.getString(getString(R.string.current_location_image_attrib), null)));
         }
-        mImageProgressBar.setVisibility(View.GONE);
+//        mImageProgressBar.setVisibility(View.GONE);
         mAttText.setMovementMethod(LinkMovementMethod.getInstance());
         String locationText = sharedPreferences.getString(getString(R.string.current_location_text), null);
         mLocationText.setText(locationText);
@@ -325,13 +332,23 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                     + getString(R.string.webservice_api_key)
                     + getString(R.string.webservice_query)
                     + location.replaceAll(" ", "%20");
+//                    + "%20attraction";
             JsonObjectRequest objectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
                         JSONArray results = response.getJSONArray("results");
-                        JSONObject resultsObject = results.getJSONObject(0);
-                        String placeId = resultsObject.getString("place_id");
+                        String placeId = null;
+//                        StringBuilder places = new StringBuilder();
+//                        for (int i=0; i<results.length(); i++) {
+                            JSONObject resultsObject = results.getJSONObject(0);
+                            placeId = resultsObject.getString("place_id");
+                            String placeName = resultsObject.getString("name");
+//                            Log.v(TAG, "JSON ARRAY: " + placeName);
+//                            places.append(placeName);
+//                            places.append("\n");
+//                        }
+//                        mLocationText.setText(places.toString());
                         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString(getString(R.string.current_place_id), placeId);
@@ -357,7 +374,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         new PhotoTask(mImageView.getWidth(), mImageView.getHeight()) {
             @Override
             protected void onPreExecute() {
-                mImageProgressBar.setVisibility(View.VISIBLE);
+//                mImageProgressBar.setVisibility(View.VISIBLE);
                 // Display a temporary image to show while bitmap is loading.
 //                mImageView.setImageResource(R.drawable.empty_photo);
             }
@@ -367,7 +384,7 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
                 if (attributedPhoto != null) {
                     // Photo has been loaded, display it.
                     mImageView.setImageBitmap(attributedPhoto.bitmap);
-                    mImageProgressBar.setVisibility(View.GONE);
+//                    mImageProgressBar.setVisibility(View.GONE);
                     Bitmap currentLocationImage = attributedPhoto.bitmap;
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                     currentLocationImage.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
@@ -457,41 +474,41 @@ public class HomePageOneFragment extends Fragment implements GoogleApiClient.Con
         }
     }
 
-    public void getLocationWikiIntro(String currentPlace){
-        RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
-        String formatting1 = currentPlace.replaceAll(" - ", ",_");
-        String formattedCurrentPlace = formatting1.replaceAll(" ", "%20");
-        String url = "https://en.wikipedia.org/w/api.php?format=json&action=query&titles=" + formattedCurrentPlace + "&redirects&prop=extracts&exintro&explaintext";
-        JsonObjectRequest wikiJsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    String key = null;
-                    JSONObject jsonObject = response.getJSONObject("query");
-                    JSONObject pages = jsonObject.getJSONObject("pages");
-                    Iterator<String> keys = pages.keys();
-                    if( keys.hasNext() ){
-                        key = keys.next();
-                        Log.v(TAG, key);
-                    }
-                    JSONObject extract = pages.getJSONObject(key);
-                    String extractText = extract.getString("extract").replaceAll("\n", "\n\n");
-                    Log.v(TAG, extractText);
-                    mLocationText.setText(extractText);
-                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(getString(R.string.current_location_text), extractText);
-                    editor.apply();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.v(TAG, "Wiki Error");
-            }
-        });
-        queue.add(wikiJsonRequest);
-    }
+//    public void getLocationWikiIntro(String currentPlace){
+//        RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
+//        String formatting1 = currentPlace.replaceAll(" - ", ",_");
+//        String formattedCurrentPlace = formatting1.replaceAll(" ", "%20");
+//        String url = "https://en.wikipedia.org/w/api.php?format=json&action=query&titles=" + formattedCurrentPlace + "&redirects&prop=extracts&exintro&explaintext";
+//        JsonObjectRequest wikiJsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+//            @Override
+//            public void onResponse(JSONObject response) {
+//                try {
+//                    String key = null;
+//                    JSONObject jsonObject = response.getJSONObject("query");
+//                    JSONObject pages = jsonObject.getJSONObject("pages");
+//                    Iterator<String> keys = pages.keys();
+//                    if( keys.hasNext() ){
+//                        key = keys.next();
+//                        Log.v(TAG, key);
+//                    }
+//                    JSONObject extract = pages.getJSONObject(key);
+//                    String extractText = extract.getString("extract").replaceAll("\n", "\n\n");
+//                    Log.v(TAG, extractText);
+//                    mLocationText.setText(extractText);
+//                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences("current_location_preferences", Context.MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = sharedPreferences.edit();
+//                    editor.putString(getString(R.string.current_location_text), extractText);
+//                    editor.apply();
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }, new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                Log.v(TAG, "Wiki Error");
+//            }
+//        });
+//        queue.add(wikiJsonRequest);
+//    }
 }

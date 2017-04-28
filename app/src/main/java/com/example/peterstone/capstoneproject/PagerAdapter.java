@@ -4,8 +4,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import com.example.peterstone.capstoneproject.Fragments.HomePageOneFragment;
-import com.example.peterstone.capstoneproject.Fragments.HomePageTwoFragment;
+import com.example.peterstone.capstoneproject.Fragments.NewCurrentLocationFragment;
+import com.example.peterstone.capstoneproject.Fragments.SavedPlacesFragment;
 
 /**
  * Created by Peter Stone on 17/04/2017.
@@ -24,9 +24,9 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
     public Fragment getItem(int position) {
         switch (position){
             case 0:
-                return new HomePageOneFragment();
+                return new NewCurrentLocationFragment();
             case 1:
-                return new HomePageTwoFragment();
+                return new SavedPlacesFragment();
             default:
                 return null;
         }

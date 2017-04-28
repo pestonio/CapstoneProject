@@ -12,10 +12,10 @@ import com.example.peterstone.capstoneproject.R;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class HomePageTwoFragment extends Fragment {
+public class SavedPlacesFragment extends Fragment {
 
 
-    public HomePageTwoFragment() {
+    public SavedPlacesFragment() {
         // Required empty public constructor
     }
 
