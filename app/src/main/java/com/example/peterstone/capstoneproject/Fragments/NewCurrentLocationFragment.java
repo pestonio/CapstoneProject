@@ -248,9 +248,9 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                         JSONObject photoRef = photoArray.getJSONObject(0);
                         Bitmap bitmap = getPlaceImage(photoRef.getString("photo_reference"));
                         mPlaceData.add(new PlaceClass(placeObject.getString("name"), bitmap));
-                        CurrentLocationRecyclerAdapter adapter= new CurrentLocationRecyclerAdapter(mPlaceData);
-                        mRecyclerView.setAdapter(adapter);
                     }
+                    CurrentLocationRecyclerAdapter adapter= new CurrentLocationRecyclerAdapter(mPlaceData);
+                    mRecyclerView.setAdapter(adapter);
 
 //                    mCurrentLocationName.setText(mPlaceData.get(4));
 //                    placePhotosTask(mPlaceData.get(5));
