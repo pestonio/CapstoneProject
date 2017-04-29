@@ -5,10 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!--<ScrollView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content">-->
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -36,103 +32,11 @@
                 android:paddingTop="20dp"
                 android:paddingBottom="4dp"/>
 
-            <!--<android.support.v7.widget.CardView-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="250dp"-->
-                <!--android:padding="16dp">-->
-
-                <!--<LinearLayout-->
-                    <!--android:id="@+id/current_card_view"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--android:orientation="vertical">-->
-
-                    <!--<RelativeLayout-->
-                        <!--android:layout_width="wrap_content"-->
-                        <!--android:layout_height="wrap_content">-->
-
-                        <!--<ImageView-->
-                            <!--android:id="@+id/current_place_image"-->
-                            <!--android:layout_width="match_parent"-->
-                            <!--android:layout_height="200dp"-->
-                            <!--android:scaleType="centerCrop"-->
-                            <!--android:src="@drawable/placeholder" />-->
-
-                        <!--&lt;!&ndash;<ProgressBar&ndash;&gt;-->
-                            <!--&lt;!&ndash;android:id="@+id/image_load_progress"&ndash;&gt;-->
-                            <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
-                            <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
-                            <!--&lt;!&ndash;android:layout_centerInParent="true"&ndash;&gt;-->
-                            <!--&lt;!&ndash;/>&ndash;&gt;-->
-                        <!--<TextView-->
-                            <!--android:id="@+id/photo_attr_title"-->
-                            <!--android:layout_width="wrap_content"-->
-                            <!--android:layout_height="wrap_content"-->
-                            <!--tools:text="Photo: "-->
-                            <!--android:textColor="#FFFFFF"-->
-                            <!--android:textSize="12sp"-->
-                            <!--android:layout_marginStart="8dp"-->
-                            <!--android:layout_marginLeft="8dp" />-->
-                        <!--<TextView-->
-                            <!--android:id="@+id/image_attributions"-->
-                            <!--android:layout_width="wrap_content"-->
-                            <!--android:layout_height="wrap_content"-->
-                            <!--tools:text="Photo Attributions"-->
-                            <!--android:textSize="12sp"-->
-                            <!--android:textColorLink="#FFFFFF"                            android:layout_toRightOf="@id/photo_attr_title"-->
-                            <!--android:layout_toEndOf="@id/photo_attr_title"-->
-                            <!--/>-->
-                    <!--</RelativeLayout>-->
-
-
-                    <!--<RelativeLayout-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent">-->
-
-                        <!--<TextView-->
-                            <!--android:id="@+id/current_place_name"-->
-                            <!--android:layout_width="wrap_content"-->
-                            <!--android:layout_height="wrap_content"-->
-                            <!--android:layout_alignParentLeft="true"-->
-                            <!--android:layout_alignParentStart="true"-->
-                            <!--android:layout_centerVertical="true"-->
-                            <!--android:layout_marginLeft="20dp"-->
-                            <!--android:layout_marginStart="20dp"-->
-                            <!--tools:text="Location Name">-->
-                        <!--</TextView>-->
-
-                        <!--<ImageView-->
-                            <!--android:id="@+id/imageView"-->
-                            <!--android:layout_width="wrap_content"-->
-                            <!--android:layout_height="wrap_content"-->
-                            <!--android:layout_alignParentEnd="true"-->
-                            <!--android:layout_alignParentRight="true"-->
-                            <!--android:layout_centerVertical="true"-->
-                            <!--android:layout_marginEnd="20dp"-->
-                            <!--android:layout_marginRight="20dp"-->
-                            <!--android:tint="#616161" android:src="@drawable/ic_my_location_black_24dp" />-->
-
-                    <!--</RelativeLayout>-->
-
-                <!--</LinearLayout>-->
-
-            <!--</android.support.v7.widget.CardView>-->
-
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/current_place_recycler_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
             </android.support.v7.widget.RecyclerView>
 
-            <!--<TextView-->
-                <!--android:id="@+id/current_place_text"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--tools:maxLines="5"-->
-                <!--android:padding="16dp"-->
-                <!--android:background="#EEEEEE"-->
-                <!--tools:text="@string/mock_text" />-->
-
         </LinearLayout>
-    <!--</ScrollView>-->
 </android.support.v4.widget.SwipeRefreshLayout>

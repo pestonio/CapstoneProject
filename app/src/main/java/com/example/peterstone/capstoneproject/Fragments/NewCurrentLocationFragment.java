@@ -127,6 +127,7 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                 .setFastestInterval(1000);
     }
 
+
     @Override
     public void onPause() {
         super.onPause();
@@ -175,7 +176,7 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             LOCATION_PERMISSION_GRANTED = true;
-            getUserLocation();
+            mApiClient.connect();
             Log.i(TAG, "Permission Granted!");
         } else {
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -208,6 +209,9 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                 String locality = address.get(0).getLocality();
                 Log.i(TAG, "Current Location is: " + country + " " + locality + " " + adminArea);
                 placeInfo = locality + " " + country;
+                String url = urlBuilder(placeInfo);
+                //TODO pass correct address to URL builder.
+                getPlaceData(url);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -215,9 +219,6 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
         if (currentLocation == null && mApiClient.isConnected()) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, this);
         }
-        String url = urlBuilder("London United Kingdom");
-        //TODO pass correct address to URL builder.
-        getPlaceData(url);
     }
 
     private String urlBuilder(String url) {
@@ -229,48 +230,47 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                 .appendQueryParameter(QUERY, url.concat(" attraction"))
                 .appendQueryParameter(API_KEY, getString(R.string.webservice_api_key))
                 .build();
-        String builtUrl = builtUri.toString();
-        Log.i(TAG, "URL: " + builtUrl);
-        return builtUrl;
+        return builtUri.toString();
     }
 
     private void getPlaceData(String url) {
-        final RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
-        JsonObjectRequest jsonInitialRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    JSONArray initialJsonArray = response.getJSONArray("results");
-                    for (int i = 0; i < initialJsonArray.length(); i++) {
-                        JSONObject placeObject = initialJsonArray.getJSONObject(i);
-                        JSONArray photoArray = placeObject.getJSONArray("photos");
-                        JSONObject photoRef = photoArray.getJSONObject(0);
-                        String placeName = placeObject.getString("name");
-                        String photoReference = photoRef.getString("photo_reference");
-                        String url = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=" + photoReference + "&key=" + getString(R.string.webservice_api_key);
+        Log.i(TAG, "Passed URL: " + url);
+        if (url!= null) {
+            final RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
+            JsonObjectRequest jsonInitialRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    try {
+                        JSONArray initialJsonArray = response.getJSONArray("results");
+                        for (int i = 0; i < initialJsonArray.length(); i++) {
+                            JSONObject placeObject = initialJsonArray.getJSONObject(i);
+                            String placeName = placeObject.getString("name");
+                            Log.i(TAG, "place name = " + placeName);
+                            JSONArray photoArray = placeObject.getJSONArray("photos");
+                            JSONObject photoRef = photoArray.getJSONObject(0);
+                            String photoReference = photoRef.getString("photo_reference");
+                            String url = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=" + photoReference + "&key=" + getString(R.string.webservice_api_key);
+                            mPlaceData.add(new PlaceClass(placeName, url));
+                        }
+                        CurrentLocationRecyclerAdapter adapter= new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
+                        mRecyclerView.setAdapter(adapter);
+                        Log.i(TAG, "Array Data = " + mPlaceData);
 
-//                        getPlaceImage(placeName, photoReference);
-//                        Bitmap bitmap = getPlaceImage(photoRef.getString("photo_reference"));
-                        mPlaceData.add(new PlaceClass(placeName, url));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                    CurrentLocationRecyclerAdapter adapter= new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
-                    mRecyclerView.setAdapter(adapter);
-
-//                    mCurrentLocationName.setText(mPlaceData.get(4));
-//                    placePhotosTask(mPlaceData.get(5));
-                    Log.i(TAG, "Array Data = " + mPlaceData);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
-            }
-        }, new Response.ErrorListener() {
+            }, new Response.ErrorListener() {
 
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Volley Error: " + error);
-            }
-        });queue.add(jsonInitialRequest);
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e(TAG, "Volley Error: " + error);
+                }
+            });
+            queue.add(jsonInitialRequest);
+        }else {
+            Log.e(TAG, "Get Location Data Failed - URL is Null");
+        }
     }
 
 //    public void getPlaceImage (final String placeName, String photoRef){

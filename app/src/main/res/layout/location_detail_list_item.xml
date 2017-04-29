@@ -3,14 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical">
 
     <android.support.v7.widget.CardView
         android:id="@+id/rc_current_card_view"
         android:layout_width="match_parent"
         android:layout_height="250dp"
-        android:padding="16dp">
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp">
 
         <LinearLayout
             android:id="@+id/rc_current_card_linear_layout"
@@ -39,20 +40,21 @@
                     android:id="@+id/rc_photo_attr_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    tools:text="Photo: "
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginStart="8dp"
                     android:textColor="#FFFFFF"
                     android:textSize="12sp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginLeft="8dp" />
+                    tools:text="Photo: " />
+
                 <TextView
                     android:id="@+id/rc_image_attributions"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    tools:text="Photo Attributions"
-                    android:textSize="12sp"
-                    android:textColorLink="#FFFFFF"                            android:layout_toRightOf="@id/rc_photo_attr_title"
                     android:layout_toEndOf="@id/rc_photo_attr_title"
-                    />
+                    android:layout_toRightOf="@id/rc_photo_attr_title"
+                    android:textColorLink="#FFFFFF"
+                    android:textSize="12sp"
+                    tools:text="Photo Attributions" />
             </RelativeLayout>
 
 
@@ -69,61 +71,12 @@
                     android:layout_centerVertical="true"
                     android:layout_marginLeft="20dp"
                     android:layout_marginStart="20dp"
-                    tools:text="Location Name">
-                </TextView>
+                    tools:text="Location Name"></TextView>
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginEnd="20dp"
-                    android:layout_marginRight="20dp"
-                    android:tint="#616161" android:src="@drawable/ic_my_location_black_24dp" />
 
             </RelativeLayout>
 
         </LinearLayout>
 
     </android.support.v7.widget.CardView>
-
-    <!--<android.support.v7.widget.CardView-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="200dp"-->
-        <!--android:layout_margin="16dp">-->
-
-        <!--<LinearLayout-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:orientation="vertical">-->
-
-            <!--&lt;!&ndash;<ImageView&ndash;&gt;-->
-                <!--&lt;!&ndash;android:id="@+id/location_detail_poi_image"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_height="150dp"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:scaleType="centerCrop"&ndash;&gt;-->
-                <!--&lt;!&ndash;tools:src="@drawable/placeholder" />&ndash;&gt;-->
-
-            <!--&lt;!&ndash;<RelativeLayout&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_height="match_parent">&ndash;&gt;-->
-
-                <!--&lt;!&ndash;<TextView&ndash;&gt;-->
-                    <!--&lt;!&ndash;android:id="@+id/location_detail_poi_name"&ndash;&gt;-->
-                    <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
-                    <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
-                    <!--&lt;!&ndash;android:layout_alignParentLeft="true"&ndash;&gt;-->
-                    <!--&lt;!&ndash;android:layout_alignParentStart="true"&ndash;&gt;-->
-                    <!--&lt;!&ndash;android:layout_centerVertical="true"&ndash;&gt;-->
-                    <!--&lt;!&ndash;android:layout_marginLeft="20dp"&ndash;&gt;-->
-                    <!--&lt;!&ndash;android:layout_marginStart="20dp"&ndash;&gt;-->
-                    <!--&lt;!&ndash;tools:text="POI Name">&ndash;&gt;-->
-                <!--&lt;!&ndash;</TextView>&ndash;&gt;-->
-
-            <!--&lt;!&ndash;</RelativeLayout>&ndash;&gt;-->
-
-        <!--</LinearLayout>-->
-
-    <!--</android.support.v7.widget.CardView>-->
 </LinearLayout>
