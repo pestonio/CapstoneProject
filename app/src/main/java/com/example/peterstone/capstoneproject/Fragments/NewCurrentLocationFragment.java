@@ -29,7 +29,6 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.peterstone.capstoneproject.CurrentLocationRecyclerAdapter;
@@ -108,11 +107,11 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
     public void onStart() {
         super.onStart();
         mPlaceData = new ArrayList<>();
-        mCurrentLocationImage = (ImageView) getActivity().findViewById(R.id.current_place_image);
-        mCurrentLocationName = (TextView) getActivity().findViewById(R.id.current_place_name);
-        mAttributionBase = (TextView) getActivity().findViewById(R.id.photo_attr_title);
-        mAttributionName = (TextView) getActivity().findViewById(R.id.image_attributions);
-        mCurrentLocationName.setText("TEST");//TODO set placeholder text and image or pull from SP.
+//        mCurrentLocationImage = (ImageView) getActivity().findViewById(R.id.current_place_image);
+//        mCurrentLocationName = (TextView) getActivity().findViewById(R.id.current_place_name);
+//        mAttributionBase = (TextView) getActivity().findViewById(R.id.photo_attr_title);
+//        mAttributionName = (TextView) getActivity().findViewById(R.id.image_attributions);
+//        mCurrentLocationName.setText("TEST");//TODO set placeholder text and image or pull from SP.
         mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.current_place_recycler_view);
         LinearLayoutManager linerLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(linerLayoutManager);
@@ -246,10 +245,15 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                         JSONObject placeObject = initialJsonArray.getJSONObject(i);
                         JSONArray photoArray = placeObject.getJSONArray("photos");
                         JSONObject photoRef = photoArray.getJSONObject(0);
-                        Bitmap bitmap = getPlaceImage(photoRef.getString("photo_reference"));
-                        mPlaceData.add(new PlaceClass(placeObject.getString("name"), bitmap));
+                        String placeName = placeObject.getString("name");
+                        String photoReference = photoRef.getString("photo_reference");
+                        String url = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=" + photoReference + "&key=" + getString(R.string.webservice_api_key);
+
+//                        getPlaceImage(placeName, photoReference);
+//                        Bitmap bitmap = getPlaceImage(photoRef.getString("photo_reference"));
+                        mPlaceData.add(new PlaceClass(placeName, url));
                     }
-                    CurrentLocationRecyclerAdapter adapter= new CurrentLocationRecyclerAdapter(mPlaceData);
+                    CurrentLocationRecyclerAdapter adapter= new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
                     mRecyclerView.setAdapter(adapter);
 
 //                    mCurrentLocationName.setText(mPlaceData.get(4));
@@ -269,23 +273,23 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
         });queue.add(jsonInitialRequest);
     }
 
-    public Bitmap getPlaceImage (String photoRef){
-        String url = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=" + photoRef + "&key=" + getString(R.string.webservice_api_key);
-        RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
-        ImageRequest imageRequest = new ImageRequest(url, new Response.Listener<Bitmap>() {
-            @Override
-            public void onResponse(Bitmap response) {
-                bitmap = response;
-                Log.i(TAG, "Photo Request Success " + response);
-            }
-        }, 0, 0, ImageView.ScaleType.CENTER_CROP, null, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Error in photo request");
-            }
-        });queue.add(imageRequest);
-        return bitmap;
-    }
+//    public void getPlaceImage (final String placeName, String photoRef){
+//
+//        RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
+//        ImageRequest imageRequest = new ImageRequest(url, new Response.Listener<Bitmap>() {
+//            @Override
+//            public void onResponse(Bitmap response) {
+//                bitmap = response;
+//                Log.i(TAG, "Photo Request Success " + response);
+//                mPlaceData.add(new PlaceClass(placeName, bitmap));
+//            }
+//        }, 0, 0, ImageView.ScaleType.CENTER_CROP, null, new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                Log.e(TAG, "Error in photo request");
+//            }
+//        });queue.add(imageRequest);
+//    }
 
 
     private void placePhotosTask(String placeId) {
