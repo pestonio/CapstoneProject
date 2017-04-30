@@ -66,12 +66,24 @@
                     android:id="@+id/rc_current_place_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
                     android:layout_marginLeft="20dp"
                     android:layout_marginStart="20dp"
-                    tools:text="Location Name"></TextView>
+                    tools:text="Location Name"
+                    android:paddingTop="4dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true">
+                </TextView>
+
+                <TextView
+                    tools:text="Rating: 4.5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rating"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignLeft="@+id/rc_current_place_name"
+                    android:layout_alignStart="@+id/rc_current_place_name"
+                    android:paddingBottom="4dp"/>
 
 
             </RelativeLayout>

@@ -1,14 +1,17 @@
 package com.example.peterstone.capstoneproject.Fragments;
 
 import android.Manifest;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -34,6 +37,7 @@ import com.android.volley.toolbox.Volley;
 import com.example.peterstone.capstoneproject.CurrentLocationRecyclerAdapter;
 import com.example.peterstone.capstoneproject.PlaceClass;
 import com.example.peterstone.capstoneproject.R;
+import com.example.peterstone.capstoneproject.SQL.PlacesDBHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -41,9 +45,6 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.PlacePhotoMetadata;
-import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
-import com.google.android.gms.location.places.PlacePhotoMetadataResult;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
@@ -65,16 +66,15 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
 
     private static final String TAG = NewCurrentLocationFragment.class.getSimpleName();
     private final static int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 1;
-    private ImageView mCurrentLocationImage;
-    private TextView mCurrentLocationName;
-    private TextView mAttributionName;
-    private TextView mAttributionBase;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mApiClient;
     private static boolean LOCATION_PERMISSION_GRANTED;
     private RecyclerView mRecyclerView;
     private List<PlaceClass> mPlaceData;
-    private Bitmap bitmap;
+    private String mPlaceUrl;
+    private boolean isConnected;
+    private TextView currentTownCity;
+    private TextView currentCountry;
 
     public NewCurrentLocationFragment() {
         //Empty constructor.
@@ -106,32 +106,48 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
     @Override
     public void onStart() {
         super.onStart();
+        currentTownCity = (TextView) getActivity().findViewById(R.id.current_town_city);
+        currentCountry = (TextView) getActivity().findViewById(R.id.current_country);
+        currentTownCity.setText("PlaceHolder Town");
+        currentCountry.setText("PlaceHolder Country");
         mPlaceData = new ArrayList<>();
-//        mCurrentLocationImage = (ImageView) getActivity().findViewById(R.id.current_place_image);
-//        mCurrentLocationName = (TextView) getActivity().findViewById(R.id.current_place_name);
-//        mAttributionBase = (TextView) getActivity().findViewById(R.id.photo_attr_title);
-//        mAttributionName = (TextView) getActivity().findViewById(R.id.image_attributions);
-//        mCurrentLocationName.setText("TEST");//TODO set placeholder text and image or pull from SP.
+;//TODO set placeholder text and image or pull from SP.
+        ConnectivityManager cMan = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cMan.getActiveNetworkInfo();
+        isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
         mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.current_place_recycler_view);
         LinearLayoutManager linerLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(linerLayoutManager);
         mRecyclerView.setHasFixedSize(true);
         //TODO data and adapter.
-        buildGoogleApi();
-        if (mApiClient != null) {
-            mApiClient.connect();
+        if (isConnected) {
+            ImageView connectionIcon = (ImageView) getActivity().findViewById(R.id.no_connection);
+            TextView connectionText = (TextView) getActivity().findViewById(R.id.no_connection_text);
+            connectionIcon.setVisibility(View.GONE);
+            connectionText.setVisibility(View.GONE);
+            buildGoogleApi();
+            if (mApiClient != null) {
+                mApiClient.connect();
+            }
         }
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                 .setInterval(10 * 1000)
                 .setFastestInterval(1000);
+        if (!isConnected){
+            mRecyclerView.setVisibility(View.GONE);
+            currentCountry.setVisibility(View.GONE);
+            currentTownCity.setVisibility(View.GONE);
+        }
     }
 
 
     @Override
     public void onPause() {
         super.onPause();
-        mApiClient.stopAutoManage(getActivity());
+        if (mApiClient !=null) {
+            mApiClient.stopAutoManage(getActivity());
+        }
     }
 
 
@@ -176,7 +192,9 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             LOCATION_PERMISSION_GRANTED = true;
-            mApiClient.connect();
+            if (isConnected && mApiClient !=null) {
+                mApiClient.connect();
+            }
             Log.i(TAG, "Permission Granted!");
         } else {
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -198,6 +216,7 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
     private void getUserLocation() {
         String placeInfo = null;
         Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+        Log.i(TAG, "Location Service: " + currentLocation);
         if (currentLocation != null) {
             double latitude = currentLocation.getLatitude();
             double longitude = currentLocation.getLongitude();
@@ -209,11 +228,22 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                 String locality = address.get(0).getLocality();
                 Log.i(TAG, "Current Location is: " + country + " " + locality + " " + adminArea);
                 placeInfo = locality + " " + country;
-                String url = urlBuilder(placeInfo);
-                //TODO pass correct address to URL builder.
-                getPlaceData(url);
+                currentTownCity.setText(locality);
+                currentCountry.setText(country);
+                SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+                String lastKnownLocation = sharedPreferences.getString("lastLocation", null);
+
+                if (lastKnownLocation == null || !lastKnownLocation.equals(placeInfo)) {
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("lastLocation", placeInfo);
+                    editor.apply();
+                    String url = urlBuilder(placeInfo);
+                    getPlaceData(url);
+                }else {
+//                    loadFromDatabase();
+                }
             } catch (IOException e) {
-                e.printStackTrace();
+                Toast.makeText(getActivity(), "Location Services currently unavailable. Check connection and settings.", Toast.LENGTH_SHORT).show();
             }
         }
         if (currentLocation == null && mApiClient.isConnected()) {
@@ -234,6 +264,8 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
     }
 
     private void getPlaceData(String url) {
+        final SQLiteDatabase database = new PlacesDBHelper(getActivity()).getWritableDatabase();
+        final ContentValues values = new ContentValues();
         Log.i(TAG, "Passed URL: " + url);
         if (url!= null) {
             final RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
@@ -245,19 +277,40 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                         for (int i = 0; i < initialJsonArray.length(); i++) {
                             JSONObject placeObject = initialJsonArray.getJSONObject(i);
                             String placeName = placeObject.getString("name");
+                            String placeId = placeObject.getString("place_id");
+                            String rating = null;
+                            if (placeObject.has("rating")) {
+                                rating = placeObject.getString("rating");
+                            }
+                            String address = placeObject.getString("formatted_address");
                             Log.i(TAG, "place name = " + placeName);
-                            JSONArray photoArray = placeObject.getJSONArray("photos");
-                            JSONObject photoRef = photoArray.getJSONObject(0);
-                            String photoReference = photoRef.getString("photo_reference");
-                            String url = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=" + photoReference + "&key=" + getString(R.string.webservice_api_key);
-                            mPlaceData.add(new PlaceClass(placeName, url));
+                            if (placeObject.has("photos")) {
+                                JSONArray photoArray = placeObject.getJSONArray("photos");
+                                JSONObject photoRef = photoArray.getJSONObject(0);
+                                String photoReference = photoRef.getString("photo_reference");
+                                mPlaceUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=" + photoReference + "&key=" + getString(R.string.webservice_api_key);
+                            }else {
+                                mPlaceUrl = null;
+                            }
+                            mPlaceData.add(new PlaceClass(placeName, placeId, rating, address, mPlaceUrl));
+
+//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME, placeName);
+//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, placeId);
+//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_RATING, rating);
+//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS, address);
+//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL, mPlaceUrl);
+//                            database.insert(PlaceContract.PlaceEntry.TABLE_NAME, null, values);
+//                            Log.i(TAG, "SQL Entry is: " + values);
                         }
                         CurrentLocationRecyclerAdapter adapter= new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
                         mRecyclerView.setAdapter(adapter);
-                        Log.i(TAG, "Array Data = " + mPlaceData);
+                        Log.i(TAG, "onResponse Array Data = " + mPlaceData);
+                        if (mPlaceData.isEmpty()){
+                            Log.e(TAG, "Place Data is empty");
+                        }
 
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Toast.makeText(getActivity(), "Server data currently unavailable. Please try again later.", Toast.LENGTH_SHORT).show();
                     }
                 }
             }, new Response.ErrorListener() {
@@ -272,6 +325,7 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
             Log.e(TAG, "Get Location Data Failed - URL is Null");
         }
     }
+
 
 //    public void getPlaceImage (final String placeName, String photoRef){
 //
@@ -292,94 +346,94 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
 //    }
 
 
-    private void placePhotosTask(String placeId) {
-        // Create a new AsyncTask that displays the bitmap and attribution once loaded.
-        new PhotoTask(mCurrentLocationImage.getWidth(), mCurrentLocationImage.getHeight()) {
-            @Override
-            protected void onPreExecute() {
-//                mImageProgressBar.setVisibility(View.VISIBLE);
-                // Display a temporary image to show while bitmap is loading.
-//                mImageView.setImageResource(R.drawable.empty_photo);
-            }
-
-            @Override
-            protected void onPostExecute(AttributedPhoto attributedPhoto) {
-                if (attributedPhoto != null) {
-                    // Photo has been loaded, display it.
-//                    mCurrentLocationImage.setImageBitmap(attributedPhoto.bitmap);
-                    // Display the attribution as HTML content if set.
-                    if (attributedPhoto.attribution == null) {
-//                        mAttributionBase.setVisibility(View.GONE);
-//                        mAttributionName.setVisibility(View.GONE);
-                    } else {
-                        mAttributionName.setVisibility(View.VISIBLE);
-                        if (Build.VERSION.SDK_INT >= 24) {
-//                            mAttributionBase.setText(R.string.attribution_title_photo);
-//                            mAttributionName.setText(Html.fromHtml(attributedPhoto.attribution.toString(), Html.FROM_HTML_MODE_LEGACY));
-                        } else {
-//                            mAttributionBase.setText(R.string.attribution_title_photo);
-//                            mAttributionName.setText(Html.fromHtml(attributedPhoto.attribution.toString()));
-                        };
-                    }
-                    Log.v(TAG, attributedPhoto.attribution.toString());
-                }
-            }
-        }.execute(placeId);
-    }
-
-    abstract class PhotoTask extends AsyncTask<String, Void, PhotoTask.AttributedPhoto> {
-
-        private int mHeight;
-
-        private int mWidth;
-
-        public PhotoTask(int width, int height) {
-            mHeight = height;
-            mWidth = width;
-        }
-
-        @Override
-        protected AttributedPhoto doInBackground(String... params) {
-            if (params.length != 1) {
-                return null;
-            }
-            final String placeId = params[0];
-            AttributedPhoto attributedPhoto = null;
-
-            PlacePhotoMetadataResult result = Places.GeoDataApi
-                    .getPlacePhotos(mApiClient, placeId).await();
-
-            if (result.getStatus().isSuccess()) {
-                PlacePhotoMetadataBuffer photoMetadataBuffer = result.getPhotoMetadata();
-                if (photoMetadataBuffer.getCount() > 0 && !isCancelled()) {
-                    // Get the first bitmap and its attributions.
-                    PlacePhotoMetadata photo = photoMetadataBuffer.get(0);
-                    CharSequence attribution = photo.getAttributions();
-                    // Load a scaled bitmap for this photo.
-                    Bitmap image = photo.getScaledPhoto(mApiClient, mWidth, mHeight).await()
-                            .getBitmap();
-                    attributedPhoto = new AttributedPhoto(attribution, image);
-                }
-                // Release the PlacePhotoMetadataBuffer.
-                photoMetadataBuffer.release();
-            }
-            return attributedPhoto;
-        }
-
-        /**
-         * Holder for an image and its attribution.
-         */
-        class AttributedPhoto {
-
-            public final CharSequence attribution;
-
-            public final Bitmap bitmap;
-
-            public AttributedPhoto(CharSequence attribution, Bitmap bitmap) {
-                this.attribution = attribution;
-                this.bitmap = bitmap;
-            }
-        }
-    }
+//    private void placePhotosTask(String placeId) {
+//        // Create a new AsyncTask that displays the bitmap and attribution once loaded.
+//        new PhotoTask(mCurrentLocationImage.getWidth(), mCurrentLocationImage.getHeight()) {
+//            @Override
+//            protected void onPreExecute() {
+////                mImageProgressBar.setVisibility(View.VISIBLE);
+//                // Display a temporary image to show while bitmap is loading.
+////                mImageView.setImageResource(R.drawable.empty_photo);
+//            }
+//
+//            @Override
+//            protected void onPostExecute(AttributedPhoto attributedPhoto) {
+//                if (attributedPhoto != null) {
+//                    // Photo has been loaded, display it.
+////                    mCurrentLocationImage.setImageBitmap(attributedPhoto.bitmap);
+//                    // Display the attribution as HTML content if set.
+//                    if (attributedPhoto.attribution == null) {
+////                        mAttributionBase.setVisibility(View.GONE);
+////                        mAttributionName.setVisibility(View.GONE);
+//                    } else {
+//                        mAttributionName.setVisibility(View.VISIBLE);
+//                        if (Build.VERSION.SDK_INT >= 24) {
+////                            mAttributionBase.setText(R.string.attribution_title_photo);
+////                            mAttributionName.setText(Html.fromHtml(attributedPhoto.attribution.toString(), Html.FROM_HTML_MODE_LEGACY));
+//                        } else {
+////                            mAttributionBase.setText(R.string.attribution_title_photo);
+////                            mAttributionName.setText(Html.fromHtml(attributedPhoto.attribution.toString()));
+//                        };
+//                    }
+//                    Log.v(TAG, attributedPhoto.attribution.toString());
+//                }
+//            }
+//        }.execute(placeId);
+//    }
+//
+//    abstract class PhotoTask extends AsyncTask<String, Void, PhotoTask.AttributedPhoto> {
+//
+//        private int mHeight;
+//
+//        private int mWidth;
+//
+//        public PhotoTask(int width, int height) {
+//            mHeight = height;
+//            mWidth = width;
+//        }
+//
+//        @Override
+//        protected AttributedPhoto doInBackground(String... params) {
+//            if (params.length != 1) {
+//                return null;
+//            }
+//            final String placeId = params[0];
+//            AttributedPhoto attributedPhoto = null;
+//
+//            PlacePhotoMetadataResult result = Places.GeoDataApi
+//                    .getPlacePhotos(mApiClient, placeId).await();
+//
+//            if (result.getStatus().isSuccess()) {
+//                PlacePhotoMetadataBuffer photoMetadataBuffer = result.getPhotoMetadata();
+//                if (photoMetadataBuffer.getCount() > 0 && !isCancelled()) {
+//                    // Get the first bitmap and its attributions.
+//                    PlacePhotoMetadata photo = photoMetadataBuffer.get(0);
+//                    CharSequence attribution = photo.getAttributions();
+//                    // Load a scaled bitmap for this photo.
+//                    Bitmap image = photo.getScaledPhoto(mApiClient, mWidth, mHeight).await()
+//                            .getBitmap();
+//                    attributedPhoto = new AttributedPhoto(attribution, image);
+//                }
+//                // Release the PlacePhotoMetadataBuffer.
+//                photoMetadataBuffer.release();
+//            }
+//            return attributedPhoto;
+//        }
+//
+//        /**
+//         * Holder for an image and its attribution.
+//         */
+//        class AttributedPhoto {
+//
+//            public final CharSequence attribution;
+//
+//            public final Bitmap bitmap;
+//
+//            public AttributedPhoto(CharSequence attribution, Bitmap bitmap) {
+//                this.attribution = attribution;
+//                this.bitmap = bitmap;
+//            }
+//        }
+//    }
 
 }

@@ -37,7 +37,7 @@
 //import com.android.volley.VolleyError;
 //import com.android.volley.toolbox.JsonObjectRequest;
 //import com.android.volley.toolbox.Volley;
-//import com.example.peterstone.capstoneproject.LocationDetails;
+//import com.example.peterstone.capstoneproject.PointOfInterestDetails;
 //import com.example.peterstone.capstoneproject.R;
 //import com.google.android.gms.common.ConnectionResult;
 //import com.google.android.gms.common.api.GoogleApiClient;
@@ -95,7 +95,7 @@
 //            public void onPlaceSelected(Place place) {
 //                Log.i(TAG, "Place: " + place.getName());
 //                Log.i(TAG, "Place ID: " + place.getId());
-//                Intent locationSelectedIntent = new Intent(getActivity(), LocationDetails.class);
+//                Intent locationSelectedIntent = new Intent(getActivity(), PointOfInterestDetails.class);
 //                locationSelectedIntent.putExtra("origin", 102);
 //                startActivity(locationSelectedIntent);
 //            }
@@ -182,7 +182,7 @@
 //        currentLayout.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
-//                Intent locationIntent = new Intent(getActivity(), LocationDetails.class);
+//                Intent locationIntent = new Intent(getActivity(), PointOfInterestDetails.class);
 //                locationIntent.putExtra("origin", 101);
 //                startActivity(locationIntent);
 //            }
