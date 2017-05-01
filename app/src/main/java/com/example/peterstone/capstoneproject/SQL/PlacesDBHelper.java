@@ -20,7 +20,6 @@ public class PlacesDBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(PlaceContract.PlaceEntry.CREATE_TABLE);
-
     }
 
     @Override

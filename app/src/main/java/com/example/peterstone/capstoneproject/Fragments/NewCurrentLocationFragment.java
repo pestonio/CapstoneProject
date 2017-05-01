@@ -3,8 +3,10 @@ package com.example.peterstone.capstoneproject.Fragments;
 import android.Manifest;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
@@ -17,7 +19,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -25,6 +26,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,18 +38,22 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.peterstone.capstoneproject.CurrentLocationRecyclerAdapter;
 import com.example.peterstone.capstoneproject.PlaceClass;
+import com.example.peterstone.capstoneproject.PointOfInterestDetails;
 import com.example.peterstone.capstoneproject.R;
+import com.example.peterstone.capstoneproject.SQL.PlaceContract;
 import com.example.peterstone.capstoneproject.SQL.PlacesDBHelper;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
-import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,6 +63,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Created by Peter Stone on 27/04/2017.
@@ -75,6 +84,9 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
     private boolean isConnected;
     private TextView currentTownCity;
     private TextView currentCountry;
+    private SQLiteDatabase mDatabase;
+    private ContentValues mValues;
+    private static final int PLACE_AUTOCOMPLETE_REQUEST = 1;
 
     public NewCurrentLocationFragment() {
         //Empty constructor.
@@ -83,35 +95,35 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.current_location_fragment, container, false);
-        SupportPlaceAutocompleteFragment supportPlaceAutocompleteFragment = new SupportPlaceAutocompleteFragment();
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.autocomplete_container, supportPlaceAutocompleteFragment);
-        transaction.commit();
-        supportPlaceAutocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                //TODO intent to open location detail activity
-                Log.i(TAG, "Place Selected: " + place);
-            }
-
-            @Override
-            public void onError(Status status) {
-                Log.e(TAG, "onPlaceSelected Error: " + status);
-            }
-        });
-        return view;
+        return inflater.inflate(R.layout.current_location_fragment, container, false);
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        mDatabase = new PlacesDBHelper(getActivity()).getWritableDatabase();
+        mValues = new ContentValues();
         currentTownCity = (TextView) getActivity().findViewById(R.id.current_town_city);
         currentCountry = (TextView) getActivity().findViewById(R.id.current_country);
         currentTownCity.setText("PlaceHolder Town");
         currentCountry.setText("PlaceHolder Country");
+        LinearLayout search = (LinearLayout) getActivity().findViewById(R.id.search_view);
+        search.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    AutocompleteFilter typeFilter = new AutocompleteFilter.Builder().setTypeFilter(AutocompleteFilter.TYPE_FILTER_CITIES).build();
+                    Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).setFilter(typeFilter).build(getActivity());
+                    startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST);
+                } catch (GooglePlayServicesRepairableException e) {
+                    e.printStackTrace();
+                } catch (GooglePlayServicesNotAvailableException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         mPlaceData = new ArrayList<>();
-;//TODO set placeholder text and image or pull from SP.
+        ;//TODO set placeholder text and image or pull from SP.
         ConnectivityManager cMan = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cMan.getActiveNetworkInfo();
         isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
@@ -119,7 +131,6 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
         LinearLayoutManager linerLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(linerLayoutManager);
         mRecyclerView.setHasFixedSize(true);
-        //TODO data and adapter.
         if (isConnected) {
             ImageView connectionIcon = (ImageView) getActivity().findViewById(R.id.no_connection);
             TextView connectionText = (TextView) getActivity().findViewById(R.id.no_connection_text);
@@ -134,18 +145,37 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                 .setInterval(10 * 1000)
                 .setFastestInterval(1000);
-        if (!isConnected){
+        if (!isConnected) {
             mRecyclerView.setVisibility(View.GONE);
             currentCountry.setVisibility(View.GONE);
             currentTownCity.setVisibility(View.GONE);
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlaceAutocomplete.getPlace(getActivity(), data);
+                Log.i(TAG, "Searched for place: " + place.getId() + " " + place.getAddress());
+                Intent intent = new Intent(getActivity(), PointOfInterestDetails.class);
+                intent.putExtra("origin", 102);
+                intent.putExtra("place_name", place.getAddress());
+                intent.putExtra("place_id", place.getId());
+                startActivity(intent);
+            } else if (requestCode == PlaceAutocomplete.RESULT_ERROR) {
+                Status status = PlaceAutocomplete.getStatus(getActivity(), data);
+                Log.e(TAG, "Searched for place error: " + status.getStatusMessage());
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.i(TAG, "Search cancelled");
+            }
+        }
+    }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mApiClient !=null) {
+        if (mApiClient != null) {
             mApiClient.stopAutoManage(getActivity());
         }
     }
@@ -192,7 +222,7 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             LOCATION_PERMISSION_GRANTED = true;
-            if (isConnected && mApiClient !=null) {
+            if (isConnected && mApiClient != null) {
                 mApiClient.connect();
             }
             Log.i(TAG, "Permission Granted!");
@@ -234,13 +264,16 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                 String lastKnownLocation = sharedPreferences.getString("lastLocation", null);
 
                 if (lastKnownLocation == null || !lastKnownLocation.equals(placeInfo)) {
+                    mDatabase.delete(PlaceContract.PlaceEntry.TABLE_NAME, null, null);
+                    Log.i(TAG, "TABLE CLEARED!");
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("lastLocation", placeInfo);
                     editor.apply();
                     String url = urlBuilder(placeInfo);
                     getPlaceData(url);
-                }else {
-//                    loadFromDatabase();
+                } else {
+                    loadFromDatabase();
+                    Log.i(TAG, "Loading from DB");
                 }
             } catch (IOException e) {
                 Toast.makeText(getActivity(), "Location Services currently unavailable. Check connection and settings.", Toast.LENGTH_SHORT).show();
@@ -264,10 +297,8 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
     }
 
     private void getPlaceData(String url) {
-        final SQLiteDatabase database = new PlacesDBHelper(getActivity()).getWritableDatabase();
-        final ContentValues values = new ContentValues();
         Log.i(TAG, "Passed URL: " + url);
-        if (url!= null) {
+        if (url != null) {
             final RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
             JsonObjectRequest jsonInitialRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                 @Override
@@ -288,24 +319,25 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                                 JSONArray photoArray = placeObject.getJSONArray("photos");
                                 JSONObject photoRef = photoArray.getJSONObject(0);
                                 String photoReference = photoRef.getString("photo_reference");
-                                mPlaceUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=" + photoReference + "&key=" + getString(R.string.webservice_api_key);
-                            }else {
+                                mPlaceUrl = getString(R.string.place_api_photo_url) + photoReference + getString(R.string.api_key_parameter) + getString(R.string.webservice_api_key);
+                            } else {
                                 mPlaceUrl = null;
                             }
                             mPlaceData.add(new PlaceClass(placeName, placeId, rating, address, mPlaceUrl));
 
-//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME, placeName);
-//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, placeId);
-//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_RATING, rating);
-//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS, address);
-//                            values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL, mPlaceUrl);
-//                            database.insert(PlaceContract.PlaceEntry.TABLE_NAME, null, values);
-//                            Log.i(TAG, "SQL Entry is: " + values);
+                            mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME, placeName);
+                            mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, placeId);
+                            mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_RATING, rating);
+                            mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS, address);
+                            mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL, mPlaceUrl);
+                            mDatabase.insert(PlaceContract.PlaceEntry.TABLE_NAME, null, mValues);
+                            Log.i(TAG, "SQL Entry is: " + mValues);
                         }
-                        CurrentLocationRecyclerAdapter adapter= new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
+                        mDatabase.close();
+                        CurrentLocationRecyclerAdapter adapter = new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
                         mRecyclerView.setAdapter(adapter);
                         Log.i(TAG, "onResponse Array Data = " + mPlaceData);
-                        if (mPlaceData.isEmpty()){
+                        if (mPlaceData.isEmpty()) {
                             Log.e(TAG, "Place Data is empty");
                         }
 
@@ -321,119 +353,34 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                 }
             });
             queue.add(jsonInitialRequest);
-        }else {
+        } else {
             Log.e(TAG, "Get Location Data Failed - URL is Null");
         }
     }
 
-
-//    public void getPlaceImage (final String placeName, String photoRef){
-//
-//        RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
-//        ImageRequest imageRequest = new ImageRequest(url, new Response.Listener<Bitmap>() {
-//            @Override
-//            public void onResponse(Bitmap response) {
-//                bitmap = response;
-//                Log.i(TAG, "Photo Request Success " + response);
-//                mPlaceData.add(new PlaceClass(placeName, bitmap));
-//            }
-//        }, 0, 0, ImageView.ScaleType.CENTER_CROP, null, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                Log.e(TAG, "Error in photo request");
-//            }
-//        });queue.add(imageRequest);
-//    }
-
-
-//    private void placePhotosTask(String placeId) {
-//        // Create a new AsyncTask that displays the bitmap and attribution once loaded.
-//        new PhotoTask(mCurrentLocationImage.getWidth(), mCurrentLocationImage.getHeight()) {
-//            @Override
-//            protected void onPreExecute() {
-////                mImageProgressBar.setVisibility(View.VISIBLE);
-//                // Display a temporary image to show while bitmap is loading.
-////                mImageView.setImageResource(R.drawable.empty_photo);
-//            }
-//
-//            @Override
-//            protected void onPostExecute(AttributedPhoto attributedPhoto) {
-//                if (attributedPhoto != null) {
-//                    // Photo has been loaded, display it.
-////                    mCurrentLocationImage.setImageBitmap(attributedPhoto.bitmap);
-//                    // Display the attribution as HTML content if set.
-//                    if (attributedPhoto.attribution == null) {
-////                        mAttributionBase.setVisibility(View.GONE);
-////                        mAttributionName.setVisibility(View.GONE);
-//                    } else {
-//                        mAttributionName.setVisibility(View.VISIBLE);
-//                        if (Build.VERSION.SDK_INT >= 24) {
-////                            mAttributionBase.setText(R.string.attribution_title_photo);
-////                            mAttributionName.setText(Html.fromHtml(attributedPhoto.attribution.toString(), Html.FROM_HTML_MODE_LEGACY));
-//                        } else {
-////                            mAttributionBase.setText(R.string.attribution_title_photo);
-////                            mAttributionName.setText(Html.fromHtml(attributedPhoto.attribution.toString()));
-//                        };
-//                    }
-//                    Log.v(TAG, attributedPhoto.attribution.toString());
-//                }
-//            }
-//        }.execute(placeId);
-//    }
-//
-//    abstract class PhotoTask extends AsyncTask<String, Void, PhotoTask.AttributedPhoto> {
-//
-//        private int mHeight;
-//
-//        private int mWidth;
-//
-//        public PhotoTask(int width, int height) {
-//            mHeight = height;
-//            mWidth = width;
-//        }
-//
-//        @Override
-//        protected AttributedPhoto doInBackground(String... params) {
-//            if (params.length != 1) {
-//                return null;
-//            }
-//            final String placeId = params[0];
-//            AttributedPhoto attributedPhoto = null;
-//
-//            PlacePhotoMetadataResult result = Places.GeoDataApi
-//                    .getPlacePhotos(mApiClient, placeId).await();
-//
-//            if (result.getStatus().isSuccess()) {
-//                PlacePhotoMetadataBuffer photoMetadataBuffer = result.getPhotoMetadata();
-//                if (photoMetadataBuffer.getCount() > 0 && !isCancelled()) {
-//                    // Get the first bitmap and its attributions.
-//                    PlacePhotoMetadata photo = photoMetadataBuffer.get(0);
-//                    CharSequence attribution = photo.getAttributions();
-//                    // Load a scaled bitmap for this photo.
-//                    Bitmap image = photo.getScaledPhoto(mApiClient, mWidth, mHeight).await()
-//                            .getBitmap();
-//                    attributedPhoto = new AttributedPhoto(attribution, image);
-//                }
-//                // Release the PlacePhotoMetadataBuffer.
-//                photoMetadataBuffer.release();
-//            }
-//            return attributedPhoto;
-//        }
-//
-//        /**
-//         * Holder for an image and its attribution.
-//         */
-//        class AttributedPhoto {
-//
-//            public final CharSequence attribution;
-//
-//            public final Bitmap bitmap;
-//
-//            public AttributedPhoto(CharSequence attribution, Bitmap bitmap) {
-//                this.attribution = attribution;
-//                this.bitmap = bitmap;
-//            }
-//        }
-//    }
+    private void loadFromDatabase() {
+        SQLiteDatabase sqlDatabase = new PlacesDBHelper(getActivity()).getReadableDatabase();
+        String[] projection = {PlaceContract.PlaceEntry.COLUMN_PLACE_NAME, PlaceContract.PlaceEntry.COLUMN_PLACE_ID, PlaceContract.PlaceEntry.COLUMN_PLACE_RATING, PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS, PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL};
+        Cursor cursor = sqlDatabase.query(PlaceContract.PlaceEntry.TABLE_NAME, projection, null, null, null, null, null, null);
+        cursor.moveToFirst();
+        while (cursor.moveToNext()) {
+            int placeNameColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME);
+            String placeName = cursor.getString(placeNameColumn);
+            int placeIdColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ID);
+            String placeId = cursor.getString(placeIdColumn);
+            int placeRatingColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_RATING);
+            String placeRating = cursor.getString(placeRatingColumn);
+            int placeAddressColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS);
+            String placeAddress = cursor.getString(placeAddressColumn);
+            int placePhotoColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL);
+            String placePhotoUrl = cursor.getString(placePhotoColumn);
+            mPlaceData.add(new PlaceClass(placeName, placeId, placeRating, placeAddress, placePhotoUrl));
+            Log.i(TAG, "SQL saved place is: " + mPlaceData);
+        }
+        cursor.close();
+        mDatabase.close();
+        CurrentLocationRecyclerAdapter adapter = new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
+        mRecyclerView.setAdapter(adapter);
+    }
 
 }

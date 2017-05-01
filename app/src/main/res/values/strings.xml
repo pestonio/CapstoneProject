@@ -13,11 +13,11 @@
     <string name="last_known_current_location">lastKnownLocation</string>
     <string name="current_place_id">current_place_id</string>
     <string name="current_location_image">current_location_image</string>
-    <string name="current_location_image_attrib">current_attributions</string>
-    <string name="attribution_title_photo">"Photo: "</string>
     <string name="current_location_text">current_location_text</string>
     <string name="permission_denied">Permission Denied</string>
     <string name="current_location_preferences">current_location_preferences</string>
     <string name="wiki_base_url"><![CDATA[https://en.wikipedia.org/w/api.php?format=json&action=query&titles=]]></string>
     <string name="wiki_suffix_url"><![CDATA[&redirects&prop=extracts&exintro&explaintext]]></string>
+    <string name="place_api_photo_url"><![CDATA[https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=]]></string>
+    <string name="api_key_parameter"><![CDATA[&key=]]></string>
 </resources>

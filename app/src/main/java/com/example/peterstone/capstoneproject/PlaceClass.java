@@ -6,15 +6,13 @@ package com.example.peterstone.capstoneproject;
 
 public class PlaceClass {
     String mPlaceName;
-  String mPlaceId;
-  String mPlaceRating;
-  String mPlaceAddress;
+    String mPlaceId;
+    String mPlaceRating;
+    String mPlaceAddress;
     String mPlaceImageUrl;
 
-//    String placeId, String placeRating, String placeAddress,
-    //TODO add above details into view. Image Attributions.
 
-    public PlaceClass(String placename, String placeId, String placeRating, String placeAddress, String placeImageUrl){
+    public PlaceClass(String placename, String placeId, String placeRating, String placeAddress, String placeImageUrl) {
         this.mPlaceName = placename;
         this.mPlaceId = placeId;
         this.mPlaceRating = placeRating;

@@ -52,27 +52,26 @@ public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<Current
     @Override
     public PlaceViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.location_detail_list_item, viewGroup, false);
-        PlaceViewHolder placeViewHolder = new PlaceViewHolder(view);
-        return placeViewHolder;
+        return new PlaceViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(final PlaceViewHolder placeViewHolder, final int i) {
         String rating = "Rating: ";
         placeViewHolder.cardPlaceName.setText(mPlaces.get(i).mPlaceName);
-        if (mPlaces.get(i).mPlaceRating !=null) {
+        if (mPlaces.get(i).mPlaceRating != null) {
             placeViewHolder.cardPlaceRating.setText(rating.concat(mPlaces.get(i).mPlaceRating));
         }
         if (mPlaces.get(i).mPlaceImageUrl != null) {
             Picasso.with(mContext).load(mPlaces.get(i).mPlaceImageUrl).into(placeViewHolder.cardImageView);
-        }
-        else {
+        } else {
             Picasso.with(mContext).load(R.drawable.placeholder).into(placeViewHolder.cardImageView);
         }
         placeViewHolder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, PointOfInterestDetails.class);
+                intent.putExtra("origin", 101);
                 intent.putExtra("place_name", mPlaces.get(i).mPlaceName);
                 intent.putExtra("place_photo", mPlaces.get(i).mPlaceImageUrl);
                 mContext.startActivity(intent);

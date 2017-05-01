@@ -26,28 +26,6 @@
         android:layout_alignParentTop="true"
         android:id="@+id/location_detail_image" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:text="Photo: "
-        android:textColor="#FFFFFF"
-        android:layout_alignTop="@+id/location_fab"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginLeft="8dp"
-        android:layout_marginStart="8dp"
-        android:id="@+id/location_detail_attr_base" />
-
-    <TextView
-        android:id="@+id/location_detail_attr_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:text="Attributions"
-        android:textColorLink="#FFFFFF"         android:layout_alignBaseline="@+id/location_detail_attr_base"
-        android:layout_alignBottom="@+id/location_detail_attr_base"
-        android:layout_toRightOf="@+id/location_detail_attr_base"
-        android:layout_toEndOf="@+id/location_detail_attr_base" />
-
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/location_fab"
         android:layout_width="wrap_content"
@@ -73,7 +51,7 @@
         android:layout_marginLeft="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
-        android:text="Location Name"
+        tools:text="Location Name"
         android:layout_toLeftOf="@+id/location_fab"
         android:layout_toStartOf="@+id/location_fab" />
 
