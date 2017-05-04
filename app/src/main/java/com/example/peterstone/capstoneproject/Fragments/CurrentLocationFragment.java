@@ -71,9 +71,9 @@ import static android.app.Activity.RESULT_OK;
  * Created by Peter Stone on 27/04/2017.
  */
 
-public class NewCurrentLocationFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class CurrentLocationFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    private static final String TAG = NewCurrentLocationFragment.class.getSimpleName();
+    private static final String TAG = CurrentLocationFragment.class.getSimpleName();
     private final static int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 1;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mApiClient;
@@ -88,7 +88,7 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
     private ContentValues mValues;
     private static final int PLACE_AUTOCOMPLETE_REQUEST = 1;
 
-    public NewCurrentLocationFragment() {
+    public CurrentLocationFragment() {
         //Empty constructor.
     }
 

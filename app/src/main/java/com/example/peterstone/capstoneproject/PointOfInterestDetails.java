@@ -65,13 +65,14 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
             double placeLong = intent.getDoubleExtra("place_long", 0);
             mRecyclerView.setVisibility(View.GONE);
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            test = new LatLng(placeLat, placeLong); //TODO pass LatLng from JSON object.
+            test = new LatLng(51.4994794, -0.1248092);
             CameraPosition cameraPosition = new CameraPosition(test, 14, 0, 0);
             GoogleMapOptions options = new GoogleMapOptions().liteMode(true).camera(cameraPosition);
             SupportMapFragment supportMapFragment = SupportMapFragment.newInstance(options);
             supportMapFragment.getMapAsync(this);
             fragmentTransaction.replace(R.id.map_fragment, supportMapFragment);
             fragmentTransaction.commit();
+            //TODO AsyncTask for Wiki
             actionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -79,7 +80,6 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
                     //TODO save to DB.
                 }
             });
-            //TODO AsyncTask for Wiki
         } else if (origin == R.integer.ORIGIN_GOOGLE_SEARCH) {
             actionButton.setVisibility(View.GONE);
             placeNameTextView.setText(intent.getStringExtra("place_name"));
@@ -155,10 +155,7 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        //TODO pass LatLng from JSON object along with POI name.
         Log.i(TAG, "onMapReady Camera: " + googleMap.getCameraPosition().toString());
-//        LatLng test = new LatLng(51.432, -0.9701);
         googleMap.addMarker(new MarkerOptions().position(test).title(placeName));
-//        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(test, 14));
     }
 }
