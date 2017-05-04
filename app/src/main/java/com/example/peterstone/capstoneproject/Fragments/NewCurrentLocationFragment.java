@@ -159,7 +159,7 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                 Place place = PlaceAutocomplete.getPlace(getActivity(), data);
                 Log.i(TAG, "Searched for place: " + place.getId() + " " + place.getAddress());
                 Intent intent = new Intent(getActivity(), PointOfInterestDetails.class);
-                intent.putExtra("origin", 102);
+                intent.putExtra("origin", R.integer.ORIGIN_GOOGLE_SEARCH);
                 intent.putExtra("place_name", place.getAddress());
                 intent.putExtra("place_id", place.getId());
                 startActivity(intent);
@@ -272,8 +272,8 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                     String url = urlBuilder(placeInfo);
                     getPlaceData(url);
                 } else {
-                    loadFromDatabase();
                     Log.i(TAG, "Loading from DB");
+                    loadFromDatabase();
                 }
             } catch (IOException e) {
                 Toast.makeText(getActivity(), "Location Services currently unavailable. Check connection and settings.", Toast.LENGTH_SHORT).show();
@@ -309,6 +309,10 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                             JSONObject placeObject = initialJsonArray.getJSONObject(i);
                             String placeName = placeObject.getString("name");
                             String placeId = placeObject.getString("place_id");
+                            JSONObject placeGeometry = placeObject.getJSONObject("geometry");
+                            JSONObject placeLocation= placeGeometry.getJSONObject("location");
+                            double placeLat = placeLocation.getDouble("lat");
+                            double placeLong = placeLocation.getDouble("lng");
                             String rating = null;
                             if (placeObject.has("rating")) {
                                 rating = placeObject.getString("rating");
@@ -323,13 +327,15 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
                             } else {
                                 mPlaceUrl = null;
                             }
-                            mPlaceData.add(new PlaceClass(placeName, placeId, rating, address, mPlaceUrl));
+                            mPlaceData.add(new PlaceClass(placeName, placeId, rating, address, mPlaceUrl, placeLat, placeLong));
 
                             mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME, placeName);
                             mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, placeId);
                             mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_RATING, rating);
                             mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS, address);
                             mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL, mPlaceUrl);
+                            mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_LAT, placeLat);
+                            mValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_LONG, placeLong);
                             mDatabase.insert(PlaceContract.PlaceEntry.TABLE_NAME, null, mValues);
                             Log.i(TAG, "SQL Entry is: " + mValues);
                         }
@@ -360,25 +366,35 @@ public class NewCurrentLocationFragment extends Fragment implements GoogleApiCli
 
     private void loadFromDatabase() {
         SQLiteDatabase sqlDatabase = new PlacesDBHelper(getActivity()).getReadableDatabase();
-        String[] projection = {PlaceContract.PlaceEntry.COLUMN_PLACE_NAME, PlaceContract.PlaceEntry.COLUMN_PLACE_ID, PlaceContract.PlaceEntry.COLUMN_PLACE_RATING, PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS, PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL};
-        Cursor cursor = sqlDatabase.query(PlaceContract.PlaceEntry.TABLE_NAME, projection, null, null, null, null, null, null);
-        cursor.moveToFirst();
-        while (cursor.moveToNext()) {
-            int placeNameColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME);
-            String placeName = cursor.getString(placeNameColumn);
-            int placeIdColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ID);
-            String placeId = cursor.getString(placeIdColumn);
-            int placeRatingColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_RATING);
-            String placeRating = cursor.getString(placeRatingColumn);
-            int placeAddressColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS);
-            String placeAddress = cursor.getString(placeAddressColumn);
-            int placePhotoColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL);
-            String placePhotoUrl = cursor.getString(placePhotoColumn);
-            mPlaceData.add(new PlaceClass(placeName, placeId, placeRating, placeAddress, placePhotoUrl));
-            Log.i(TAG, "SQL saved place is: " + mPlaceData);
-        }
-        cursor.close();
-        mDatabase.close();
+        String[] projection = {PlaceContract.PlaceEntry.COLUMN_PLACE_NAME, PlaceContract.PlaceEntry.COLUMN_PLACE_ID, PlaceContract.PlaceEntry.COLUMN_PLACE_RATING, PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS, PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL, PlaceContract.PlaceEntry.COLUMN_PLACE_LAT, PlaceContract.PlaceEntry.COLUMN_PLACE_LONG};
+        final Cursor cursor = sqlDatabase.query(PlaceContract.PlaceEntry.TABLE_NAME, projection, null, null, null, null, null, null);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                cursor.moveToFirst();
+                while (cursor.moveToNext()) {
+                    int placeNameColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME);
+                    String placeName = cursor.getString(placeNameColumn);
+                    int placeIdColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ID);
+                    String placeId = cursor.getString(placeIdColumn);
+                    int placeRatingColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_RATING);
+                    String placeRating = cursor.getString(placeRatingColumn);
+                    int placeAddressColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS);
+                    String placeAddress = cursor.getString(placeAddressColumn);
+                    int placePhotoColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL);
+                    String placePhotoUrl = cursor.getString(placePhotoColumn);
+                    int placeLatColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_LAT);
+                    double placeLat = cursor.getDouble(placeLatColumn);
+                    int placeLongColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_LONG);
+                    double placeLng = cursor.getDouble(placeLongColumn);
+                    mPlaceData.add(new PlaceClass(placeName, placeId, placeRating, placeAddress, placePhotoUrl, placeLat, placeLng));
+                    Log.i(TAG, "SQL saved place is: " + mPlaceData);
+                }
+                cursor.close();
+            }
+        }).start();
+
+
         CurrentLocationRecyclerAdapter adapter = new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
         mRecyclerView.setAdapter(adapter);
     }

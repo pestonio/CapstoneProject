@@ -14,6 +14,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    public static final int ORIGIN_CURRENT_LOCATION = 101;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

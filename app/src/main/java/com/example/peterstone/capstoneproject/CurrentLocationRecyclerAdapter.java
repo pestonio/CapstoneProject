@@ -20,6 +20,8 @@ import java.util.List;
 
 public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<CurrentLocationRecyclerAdapter.PlaceViewHolder> {
 
+    public static final int ORIGIN_CURRENT_LOCATION = 101;
+
     public static class PlaceViewHolder extends RecyclerView.ViewHolder {
 
         CardView cardView;
@@ -71,9 +73,11 @@ public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<Current
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, PointOfInterestDetails.class);
-                intent.putExtra("origin", 101);
+                intent.putExtra("origin", R.integer.ORIGIN_CURRENT_LOCATION);
                 intent.putExtra("place_name", mPlaces.get(i).mPlaceName);
                 intent.putExtra("place_photo", mPlaces.get(i).mPlaceImageUrl);
+                intent.putExtra("place_lat", mPlaces.get(i).mPlaceLat);
+                intent.putExtra("place_long", mPlaces.get(i).mPlaceLong);
                 mContext.startActivity(intent);
             }
         });

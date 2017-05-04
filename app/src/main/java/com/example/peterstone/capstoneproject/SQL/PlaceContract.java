@@ -17,6 +17,8 @@ public class PlaceContract {
         public static final String COLUMN_PLACE_RATING = "place_rating";
         public static final String COLUMN_PLACE_ADDRESS = "place_address";
         public static final String COLUMN_PLACE_IMAGE_URL = "place_image_url";
+        public static final String COLUMN_PLACE_LAT = "place_lat";
+        public static final String COLUMN_PLACE_LONG = "place_long";
 
         public static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS " +
                 TABLE_NAME + " (" +
@@ -25,6 +27,8 @@ public class PlaceContract {
                 COLUMN_PLACE_ID + " TEXT, " +
                 COLUMN_PLACE_RATING + " TEXT, " +
                 COLUMN_PLACE_ADDRESS + " TEXT, " +
-                COLUMN_PLACE_IMAGE_URL + " TEXT" + ")";
+                COLUMN_PLACE_IMAGE_URL + " TEXT, " +
+                COLUMN_PLACE_LAT + " INTEGER, " +
+                COLUMN_PLACE_LONG + " INTEGER" + ")";
     }
 }

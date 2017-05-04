@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/location_detail_toolbar"
@@ -15,16 +15,16 @@
         android:elevation="6dp"
         android:minHeight="?attr/actionBarSize"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
 
     <ImageView
+        android:id="@+id/location_detail_image"
         android:layout_width="match_parent"
         android:layout_height="250dp"
-        android:src="@drawable/placeholder"
-        android:scaleType="centerCrop"
         android:layout_alignParentTop="true"
-        android:id="@+id/location_detail_image" />
+        android:scaleType="centerCrop"
+        android:src="@drawable/placeholder" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/location_fab"
@@ -37,9 +37,8 @@
         android:layout_marginRight="17dp"
         android:layout_marginTop="222dp"
         android:clickable="true"
-        app:fabSize="normal"
         android:src="@drawable/ic_add_white_24dp"
-        />
+        app:fabSize="normal" />
 
     <TextView
         android:id="@+id/location_detail_name"
@@ -51,32 +50,45 @@
         android:layout_marginLeft="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
-        tools:text="Location Name"
         android:layout_toLeftOf="@+id/location_fab"
-        android:layout_toStartOf="@+id/location_fab" />
+        android:layout_toStartOf="@+id/location_fab"
+        tools:text="Location Name" />
 
     <TextView
         android:id="@+id/location_detail_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/location_fab"
         android:layout_alignLeft="@+id/location_detail_name"
+        android:layout_alignRight="@+id/location_fab"
         android:layout_alignStart="@+id/location_detail_name"
         android:layout_below="@+id/location_detail_name"
-        android:layout_marginTop="20dp"
-        android:text="@string/mock_text"
-        android:maxLines="5"
-        android:layout_alignRight="@+id/location_fab"
-        android:layout_alignEnd="@+id/location_fab" />
+        android:layout_marginTop="10dp"
+        android:maxLines="3"
+        android:text="@string/mock_text" />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/location_detail_poi_list"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/location_detail_desc"
         android:layout_alignLeft="@+id/location_detail_desc"
+        android:layout_alignRight="@+id/location_detail_desc"
         android:layout_alignStart="@+id/location_detail_desc"
         android:layout_below="@+id/location_detail_desc"
-        android:layout_marginTop="20dp"
-        android:layout_alignRight="@+id/location_detail_desc"
-        android:layout_alignEnd="@+id/location_detail_desc" />
+        android:layout_marginTop="10dp"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/map_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="175dp">
+        </FrameLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/location_detail_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
 
 </RelativeLayout>
