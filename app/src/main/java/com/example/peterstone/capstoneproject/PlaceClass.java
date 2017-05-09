@@ -14,8 +14,8 @@ public class PlaceClass {
     double mPlaceLong;
 
 
-    public PlaceClass(String placename, String placeId, String placeRating, String placeAddress, String placeImageUrl, Double placeLat, Double placeLong) {
-        this.mPlaceName = placename;
+    public PlaceClass(String placeName, String placeId, String placeRating, String placeAddress, String placeImageUrl, Double placeLat, Double placeLong) {
+        this.mPlaceName = placeName;
         this.mPlaceId = placeId;
         this.mPlaceRating = placeRating;
         this.mPlaceAddress = placeAddress;

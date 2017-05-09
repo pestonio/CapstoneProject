@@ -15,19 +15,19 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 /**
- * Created by Peter Stone on 28/04/2017.
+ * Created by Peter Stone on 08/05/2017.
  */
 
-public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<CurrentLocationRecyclerAdapter.PlaceViewHolder> {
+public class SavedPlacesRecyclerView extends RecyclerView.Adapter<SavedPlacesRecyclerView.SavedPlaceViewHolder> {
 
-    public static class PlaceViewHolder extends RecyclerView.ViewHolder {
+    public static class SavedPlaceViewHolder extends RecyclerView.ViewHolder {
 
         CardView cardView;
         TextView cardPlaceName;
         TextView cardPlaceRating;
         ImageView cardImageView;
 
-        PlaceViewHolder(View view) {
+        SavedPlaceViewHolder(View view) {
             super(view);
             cardView = (CardView) view.findViewById(R.id.rc_current_card_view);
             cardPlaceName = (TextView) view.findViewById(R.id.rc_current_place_name);
@@ -39,7 +39,7 @@ public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<Current
     List<PlaceClass> mPlaces;
     Context mContext;
 
-    public CurrentLocationRecyclerAdapter(Context context, List<PlaceClass> places) {
+    public SavedPlacesRecyclerView(Context context, List<PlaceClass> places) {
         this.mPlaces = places;
         this.mContext = context;
     }
@@ -50,13 +50,13 @@ public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<Current
     }
 
     @Override
-    public PlaceViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+    public SavedPlaceViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.location_detail_list_item, viewGroup, false);
-        return new PlaceViewHolder(view);
+        return new SavedPlaceViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final PlaceViewHolder placeViewHolder, final int i) {
+    public void onBindViewHolder(final SavedPlaceViewHolder placeViewHolder, final int i) {
         String rating = "Rating: ";
         placeViewHolder.cardPlaceName.setText(mPlaces.get(i).mPlaceName);
         if (mPlaces.get(i).mPlaceRating != null) {

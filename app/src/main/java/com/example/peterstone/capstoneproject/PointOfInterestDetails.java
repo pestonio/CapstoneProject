@@ -1,6 +1,8 @@
 package com.example.peterstone.capstoneproject;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,6 +17,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.peterstone.capstoneproject.SQL.PlaceContract;
+import com.example.peterstone.capstoneproject.SQL.SavedPlacesDBHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -41,7 +45,7 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
     private static final String TAG = PointOfInterestDetails.class.getSimpleName();
     private ImageView mPlaceImage;
     private RecyclerView mRecyclerView;
-    private LatLng test;
+    private LatLng latLng;
     private String placeName;
 
     @Override
@@ -55,37 +59,48 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
         TextView placeNameTextView = (TextView) findViewById(R.id.location_detail_name);
         FloatingActionButton actionButton = (FloatingActionButton) findViewById(R.id.location_fab);
         mRecyclerView = (RecyclerView) findViewById(R.id.location_detail_recycler_view);
-        Intent intent = getIntent();
+        final Intent intent = getIntent();
         int origin = intent.getIntExtra("origin", 0);
         if (origin == R.integer.ORIGIN_CURRENT_LOCATION) {
             placeName = intent.getStringExtra("place_name");
             placeNameTextView.setText(placeName);
             Picasso.with(this).load(intent.getStringExtra("place_photo")).into(mPlaceImage);
-            double placeLat = intent.getDoubleExtra("place_lat", 0);
-            double placeLong = intent.getDoubleExtra("place_long", 0);
+            final double placeLat = intent.getDoubleExtra("place_lat", 0);
+            final double placeLong = intent.getDoubleExtra("place_long", 0);
             mRecyclerView.setVisibility(View.GONE);
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            test = new LatLng(51.4994794, -0.1248092);
-            CameraPosition cameraPosition = new CameraPosition(test, 14, 0, 0);
+            latLng = new LatLng(placeLat, placeLong);
+            CameraPosition cameraPosition = new CameraPosition(latLng, 14, 0, 0);
             GoogleMapOptions options = new GoogleMapOptions().liteMode(true).camera(cameraPosition);
             SupportMapFragment supportMapFragment = SupportMapFragment.newInstance(options);
             supportMapFragment.getMapAsync(this);
             fragmentTransaction.replace(R.id.map_fragment, supportMapFragment);
             fragmentTransaction.commit();
+            final SQLiteDatabase sqLiteDatabase = new SavedPlacesDBHelper(PointOfInterestDetails.this).getWritableDatabase();
+            final ContentValues values = new ContentValues();
             //TODO AsyncTask for Wiki
             actionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    values.put(PlaceContract.SavedPlaceEntry.COLUMN_PLACE_NAME, placeName);
+                    values.put(PlaceContract.SavedPlaceEntry.COLUMN_PLACE_IMAGE_URL, intent.getStringExtra("place_photo"));
+                    values.put(PlaceContract.SavedPlaceEntry.COLUMN_PLACE_LAT, placeLat);
+                    values.put(PlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG, placeLong);
+                    sqLiteDatabase.insert(PlaceContract.SavedPlaceEntry.TABLE_NAME, null, values);
+                    sqLiteDatabase.close();
+                    Log.i(TAG, "Item Saved: " + values);
                     Toast.makeText(PointOfInterestDetails.this, "Point Of Interest added to your saved places.", Toast.LENGTH_SHORT).show();
                     //TODO save to DB.
                 }
             });
         } else if (origin == R.integer.ORIGIN_GOOGLE_SEARCH) {
+
             actionButton.setVisibility(View.GONE);
             placeNameTextView.setText(intent.getStringExtra("place_name"));
             buildGoogleApi();
             placePhotosAsync(intent.getStringExtra("place_id"));
             //TODO AsyncTask for Wiki
+            //TODO Progress Bar
             //TODO JSON attractions, recycler view.
         }
     }
@@ -156,6 +171,6 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.i(TAG, "onMapReady Camera: " + googleMap.getCameraPosition().toString());
-        googleMap.addMarker(new MarkerOptions().position(test).title(placeName));
+        googleMap.addMarker(new MarkerOptions().position(latLng).title(placeName));
     }
 }

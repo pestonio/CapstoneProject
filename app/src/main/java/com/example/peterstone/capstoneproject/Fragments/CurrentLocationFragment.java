@@ -123,7 +123,7 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
             }
         });
         mPlaceData = new ArrayList<>();
-        ;//TODO set placeholder text and image or pull from SP.
+        //TODO set placeholder text and image or pull from SP.
         ConnectivityManager cMan = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cMan.getActiveNetworkInfo();
         isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
@@ -254,9 +254,8 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
             try {
                 List<Address> address = geocoder.getFromLocation(latitude, longitude, 1);
                 String country = address.get(0).getCountryName();
-                String adminArea = address.get(0).getAdminArea();
                 String locality = address.get(0).getLocality();
-                Log.i(TAG, "Current Location is: " + country + " " + locality + " " + adminArea);
+                Log.i(TAG, "Current Location is: " + country + " " + locality);
                 placeInfo = locality + " " + country;
                 currentTownCity.setText(locality);
                 currentCountry.setText(country);
@@ -310,7 +309,7 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                             String placeName = placeObject.getString("name");
                             String placeId = placeObject.getString("place_id");
                             JSONObject placeGeometry = placeObject.getJSONObject("geometry");
-                            JSONObject placeLocation= placeGeometry.getJSONObject("location");
+                            JSONObject placeLocation = placeGeometry.getJSONObject("location");
                             double placeLat = placeLocation.getDouble("lat");
                             double placeLong = placeLocation.getDouble("lng");
                             String rating = null;
@@ -365,14 +364,14 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
     }
 
     private void loadFromDatabase() {
-        SQLiteDatabase sqlDatabase = new PlacesDBHelper(getActivity()).getReadableDatabase();
+        final SQLiteDatabase sqlDatabase = new PlacesDBHelper(getActivity()).getReadableDatabase();
         String[] projection = {PlaceContract.PlaceEntry.COLUMN_PLACE_NAME, PlaceContract.PlaceEntry.COLUMN_PLACE_ID, PlaceContract.PlaceEntry.COLUMN_PLACE_RATING, PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS, PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL, PlaceContract.PlaceEntry.COLUMN_PLACE_LAT, PlaceContract.PlaceEntry.COLUMN_PLACE_LONG};
         final Cursor cursor = sqlDatabase.query(PlaceContract.PlaceEntry.TABLE_NAME, projection, null, null, null, null, null, null);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 cursor.moveToFirst();
-                while (cursor.moveToNext()) {
+                do {
                     int placeNameColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME);
                     String placeName = cursor.getString(placeNameColumn);
                     int placeIdColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ID);
@@ -390,11 +389,11 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                     mPlaceData.add(new PlaceClass(placeName, placeId, placeRating, placeAddress, placePhotoUrl, placeLat, placeLng));
                     Log.i(TAG, "SQL saved place is: " + mPlaceData);
                 }
+                while (cursor.moveToNext());
                 cursor.close();
+                sqlDatabase.close();
             }
         }).start();
-
-
         CurrentLocationRecyclerAdapter adapter = new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
         mRecyclerView.setAdapter(adapter);
     }
