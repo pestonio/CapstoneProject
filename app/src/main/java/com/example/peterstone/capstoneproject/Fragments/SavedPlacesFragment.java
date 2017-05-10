@@ -1,6 +1,7 @@
 package com.example.peterstone.capstoneproject.Fragments;
 
 
+import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -88,16 +89,17 @@ public class SavedPlacesFragment extends Fragment implements LoaderManager.Loade
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String[] projection = {SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_NAME, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_ID, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_RATING, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_ADDRESS, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_IMAGE_URL, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LAT, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG};
         Uri placeUri = SavedPlacesProvider.CONTENT_URI;
-        CursorLoader loader = new CursorLoader(getActivity(), placeUri, projection, null, null, null);
+        CursorLoader loader = new CursorLoader(getActivity(), placeUri, null, null, null, null);
         return loader;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         Log.i("SAVED PLACES LOADER", "Cursor contains: " + cursor.getCount());
-        
+        ContentResolver contentResolver = getActivity().getContentResolver();
+        String[] projection = {SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_NAME, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_ID, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_RATING, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_ADDRESS, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_IMAGE_URL, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LAT, SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG};
+        cursor = contentResolver.query(SavedPlacesProvider.CONTENT_URI, projection, null, null, null);
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
             do {
