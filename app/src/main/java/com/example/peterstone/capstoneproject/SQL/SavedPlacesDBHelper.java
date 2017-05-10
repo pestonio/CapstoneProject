@@ -19,12 +19,12 @@ public class SavedPlacesDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(PlaceContract.SavedPlaceEntry.CREATE_TABLE);
+        db.execSQL(SavedPlaceContract.SavedPlaceEntry.CREATE_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS" + PlaceContract.SavedPlaceEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS" + SavedPlaceContract.SavedPlaceEntry.TABLE_NAME);
         onCreate(db);
 
     }

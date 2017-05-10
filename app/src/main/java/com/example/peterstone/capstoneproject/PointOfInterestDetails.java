@@ -17,7 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.peterstone.capstoneproject.SQL.PlaceContract;
+import com.example.peterstone.capstoneproject.SQL.SavedPlaceContract;
 import com.example.peterstone.capstoneproject.SQL.SavedPlacesDBHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -82,11 +82,11 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
             actionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    values.put(PlaceContract.SavedPlaceEntry.COLUMN_PLACE_NAME, placeName);
-                    values.put(PlaceContract.SavedPlaceEntry.COLUMN_PLACE_IMAGE_URL, intent.getStringExtra("place_photo"));
-                    values.put(PlaceContract.SavedPlaceEntry.COLUMN_PLACE_LAT, placeLat);
-                    values.put(PlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG, placeLong);
-                    sqLiteDatabase.insert(PlaceContract.SavedPlaceEntry.TABLE_NAME, null, values);
+                    values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_NAME, placeName);
+                    values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_IMAGE_URL, intent.getStringExtra("place_photo"));
+                    values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LAT, placeLat);
+                    values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG, placeLong);
+                    sqLiteDatabase.insert(SavedPlaceContract.SavedPlaceEntry.TABLE_NAME, null, values);
                     sqLiteDatabase.close();
                     Log.i(TAG, "Item Saved: " + values);
                     Toast.makeText(PointOfInterestDetails.this, "Point Of Interest added to your saved places.", Toast.LENGTH_SHORT).show();

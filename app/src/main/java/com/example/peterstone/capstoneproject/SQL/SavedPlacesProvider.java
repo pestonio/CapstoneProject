@@ -1,7 +1,9 @@
 package com.example.peterstone.capstoneproject.SQL;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -12,15 +14,48 @@ import android.support.annotation.Nullable;
  */
 
 public class SavedPlacesProvider extends ContentProvider {
+
+    private SavedPlacesDBHelper placesDatabase;
+
+    private static final int PLACES = 1;
+    private static final int PLACE_ID = 2;
+
+    private static final String AUTHORITY = "com.example.peterstone.capstoneproject.provider";
+
+    private static final String BASE_PATH = "places";
+    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH);
+
+    public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/places";
+    public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/place";
+
+    private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+    static {
+        sURIMatcher.addURI(AUTHORITY, BASE_PATH, PLACES);
+        sURIMatcher.addURI(AUTHORITY, BASE_PATH + "/#", PLACE_ID);
+    }
+
     @Override
     public boolean onCreate() {
+        placesDatabase = new SavedPlacesDBHelper(getContext());
         return false;
     }
 
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        return null;
+        Cursor cursor = null;
+        switch (sURIMatcher.match(uri)){
+            case PLACES:
+                cursor = placesDatabase.getReadableDatabase().query(SavedPlaceContract.SavedPlaceEntry.TABLE_NAME,
+                        projection,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null);
+                break;
+        }
+        return cursor;
     }
 
     @Nullable

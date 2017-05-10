@@ -18,7 +18,7 @@ import java.util.List;
  * Created by Peter Stone on 08/05/2017.
  */
 
-public class SavedPlacesRecyclerView extends RecyclerView.Adapter<SavedPlacesRecyclerView.SavedPlaceViewHolder> {
+public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlacesRecyclerAdapter.SavedPlaceViewHolder> {
 
     public static class SavedPlaceViewHolder extends RecyclerView.ViewHolder {
 
@@ -39,7 +39,7 @@ public class SavedPlacesRecyclerView extends RecyclerView.Adapter<SavedPlacesRec
     List<PlaceClass> mPlaces;
     Context mContext;
 
-    public SavedPlacesRecyclerView(Context context, List<PlaceClass> places) {
+    public SavedPlacesRecyclerAdapter(Context context, List<PlaceClass> places) {
         this.mPlaces = places;
         this.mContext = context;
     }

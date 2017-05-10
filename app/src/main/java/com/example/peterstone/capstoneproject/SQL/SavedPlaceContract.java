@@ -3,15 +3,15 @@ package com.example.peterstone.capstoneproject.SQL;
 import android.provider.BaseColumns;
 
 /**
- * Created by Peter Stone on 30/04/2017.
+ * Created by Peter Stone on 10/05/2017.
  */
 
-public class PlaceContract {
+public class SavedPlaceContract {
 
-    private PlaceContract(){}
+    private SavedPlaceContract(){}
 
-    public static class PlaceEntry implements BaseColumns{
-        public static final String TABLE_NAME = "places";
+    public static class SavedPlaceEntry implements BaseColumns {
+        public static final String TABLE_NAME = "saved_places";
         public static final String COLUMN_PLACE_NAME = "place_name";
         public static final String COLUMN_PLACE_ID = "place_id";
         public static final String COLUMN_PLACE_RATING = "place_rating";
