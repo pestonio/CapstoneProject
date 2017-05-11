@@ -2,7 +2,7 @@ package com.example.peterstone.capstoneproject;
 
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,7 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.peterstone.capstoneproject.SQL.SavedPlaceContract;
-import com.example.peterstone.capstoneproject.SQL.SavedPlacesDBHelper;
+import com.example.peterstone.capstoneproject.SQL.SavedPlacesProvider;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -76,8 +76,8 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
             supportMapFragment.getMapAsync(this);
             fragmentTransaction.replace(R.id.map_fragment, supportMapFragment);
             fragmentTransaction.commit();
-            final SQLiteDatabase sqLiteDatabase = new SavedPlacesDBHelper(PointOfInterestDetails.this).getWritableDatabase();
             final ContentValues values = new ContentValues();
+//            final SQLiteDatabase sqLiteDatabase = new SavedPlacesDBHelper(PointOfInterestDetails.this).getWritableDatabase();
             //TODO AsyncTask for Wiki
             actionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -86,8 +86,9 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_IMAGE_URL, intent.getStringExtra("place_photo"));
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LAT, placeLat);
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG, placeLong);
-                    sqLiteDatabase.insert(SavedPlaceContract.SavedPlaceEntry.TABLE_NAME, null, values);
-                    sqLiteDatabase.close();
+                    Uri uri = getContentResolver().insert(SavedPlacesProvider.CONTENT_URI, values);
+//                    sqLiteDatabase.insert(SavedPlaceContract.SavedPlaceEntry.TABLE_NAME, null, values);
+//                    sqLiteDatabase.close();
                     Log.i(TAG, "Item Saved: " + values);
                     Toast.makeText(PointOfInterestDetails.this, "Point Of Interest added to your saved places.", Toast.LENGTH_SHORT).show();
                     //TODO save to DB.

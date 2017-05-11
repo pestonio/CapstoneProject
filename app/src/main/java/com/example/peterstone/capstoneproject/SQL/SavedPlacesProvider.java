@@ -2,9 +2,11 @@ package com.example.peterstone.capstoneproject.SQL;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -55,6 +57,7 @@ public class SavedPlacesProvider extends ContentProvider {
                         null);
                 break;
         }
+        cursor.setNotificationUri(getContext().getContentResolver(),uri);
         return cursor;
     }
 
@@ -67,7 +70,22 @@ public class SavedPlacesProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        return null;
+        int uriType = sURIMatcher.match(uri);
+        SQLiteDatabase database = placesDatabase.getWritableDatabase();
+        Uri returnUri = null;
+
+        switch (uriType){
+            case PLACES:
+                long id = database.insert(SavedPlaceContract.SavedPlaceEntry.TABLE_NAME, null, values);
+                if (id >0){
+                    returnUri = ContentUris.withAppendedId(CONTENT_URI, id);
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown URI: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return returnUri;
     }
 
     @Override
