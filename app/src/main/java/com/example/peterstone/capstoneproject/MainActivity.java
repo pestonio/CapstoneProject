@@ -1,5 +1,6 @@
 package com.example.peterstone.capstoneproject;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -46,5 +47,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 }

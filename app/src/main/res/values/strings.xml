@@ -18,4 +18,6 @@
     <string name="wiki_suffix_url"><![CDATA[&redirects&prop=extracts&exintro&explaintext]]></string>
     <string name="place_api_photo_url"><![CDATA[https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=]]></string>
     <string name="api_key_parameter"><![CDATA[&key=]]></string>
+    <string name="wiki_data_unavailable">No Data Available</string>
+    <string name="saved_toast">Point Of Interest Saved.</string>
 </resources>

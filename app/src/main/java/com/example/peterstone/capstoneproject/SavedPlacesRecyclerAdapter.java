@@ -1,7 +1,9 @@
 package com.example.peterstone.capstoneproject;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -9,7 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.peterstone.capstoneproject.SQL.SavedPlaceContract;
+import com.example.peterstone.capstoneproject.SQL.SavedPlacesProvider;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -19,22 +24,6 @@ import java.util.List;
  */
 
 public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlacesRecyclerAdapter.SavedPlaceViewHolder> {
-
-    public static class SavedPlaceViewHolder extends RecyclerView.ViewHolder {
-
-        CardView cardView;
-        TextView cardPlaceName;
-        TextView cardPlaceRating;
-        ImageView cardImageView;
-
-        SavedPlaceViewHolder(View view) {
-            super(view);
-            cardView = (CardView) view.findViewById(R.id.rc_current_card_view);
-            cardPlaceName = (TextView) view.findViewById(R.id.rc_current_place_name);
-            cardPlaceRating = (TextView) view.findViewById(R.id.rating);
-            cardImageView = (ImageView) view.findViewById(R.id.rc_current_place_image);
-        }
-    }
 
     List<PlaceClass> mPlaces;
     Context mContext;
@@ -79,10 +68,56 @@ public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlaces
                 mContext.startActivity(intent);
             }
         });
+        placeViewHolder.deleteImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new AlertDialog.Builder(mContext)
+                        .setTitle("Delete Entry?")
+                        .setMessage("Are you sure you want to delete this place?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String placeName = mPlaces.get(i).mPlaceName;
+                                String selection = SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_NAME + " LIKE ? ";
+                                String[] selectionArgs = {placeName};
+                                int rowsDeleted = mContext.getContentResolver().delete(SavedPlacesProvider.CONTENT_URI, selection, selectionArgs);
+                                mPlaces.remove(i);
+                                notifyItemRemoved(i);
+                                notifyItemRangeChanged(i, mPlaces.size());
+                                Toast.makeText(mContext, "Item Deleted", Toast.LENGTH_SHORT).show();
+                            }
+                        }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //do nothing.
+                    }
+                }).show();
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
         return mPlaces.size();
+    }
+
+    public static class SavedPlaceViewHolder extends RecyclerView.ViewHolder {
+
+        CardView cardView;
+        TextView cardPlaceName;
+        TextView cardPlaceRating;
+        ImageView cardImageView;
+        ImageView deleteImageView;
+
+
+        SavedPlaceViewHolder(View view) {
+            super(view);
+            cardView = (CardView) view.findViewById(R.id.rc_current_card_view);
+            cardPlaceName = (TextView) view.findViewById(R.id.rc_current_place_name);
+            cardPlaceRating = (TextView) view.findViewById(R.id.rating);
+            cardImageView = (ImageView) view.findViewById(R.id.rc_current_place_image);
+            deleteImageView = (ImageView) view.findViewById(R.id.delete_saved_item);
+
+        }
     }
 }

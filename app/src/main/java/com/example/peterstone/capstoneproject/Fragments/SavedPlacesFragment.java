@@ -4,6 +4,7 @@ package com.example.peterstone.capstoneproject.Fragments;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -32,6 +33,10 @@ public class SavedPlacesFragment extends Fragment implements LoaderManager.Loade
     private RecyclerView mRecyclerView;
     private List<PlaceClass> mPlaceData;
 
+    private Parcelable mListState;
+    private LinearLayoutManager mLinearLayoutManager;
+    private static final String LIST_STATE_KEY = "saved_list_key";
+
 
 
     public SavedPlacesFragment() {
@@ -50,6 +55,7 @@ public class SavedPlacesFragment extends Fragment implements LoaderManager.Loade
     public void onStart() {
         super.onStart();
         mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.saved_places_list);
+        mLinearLayoutManager = new LinearLayoutManager(getActivity());
         mPlaceData = new ArrayList<>();
         getLoaderManager().initLoader(1, null, this);
     }
@@ -64,6 +70,8 @@ public class SavedPlacesFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         Log.i("LOADER FINISHED", "Cursor contains: " + cursor.getCount());
+        mPlaceData.clear();
+
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
             do {
@@ -78,15 +86,27 @@ public class SavedPlacesFragment extends Fragment implements LoaderManager.Loade
                 mPlaceData.add(new PlaceClass(placeName, null, null, null, placePhoto, placeLat, placeLong));
             }
             while (cursor.moveToNext());
-            LinearLayoutManager linerLayoutManager = new LinearLayoutManager(getActivity());
-            mRecyclerView.setLayoutManager(linerLayoutManager);
-            mRecyclerView.setHasFixedSize(true);
-            SavedPlacesRecyclerAdapter adapter = new SavedPlacesRecyclerAdapter(getActivity(), mPlaceData);
-            mRecyclerView.setAdapter(adapter);
+            if (mListState != null){
+                mLinearLayoutManager.onRestoreInstanceState(mListState);
+                Log.i("SAVED FRAGMENT STATE", "State Restored");
+            }else {
+                mRecyclerView.setLayoutManager(mLinearLayoutManager);
+                mRecyclerView.setHasFixedSize(true);
+                SavedPlacesRecyclerAdapter adapter = new SavedPlacesRecyclerAdapter(getActivity(), mPlaceData);
+                mRecyclerView.setAdapter(adapter);
+            }
+
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mListState = mLinearLayoutManager.onSaveInstanceState();
+        outState.putParcelable(LIST_STATE_KEY, mListState);
     }
 }

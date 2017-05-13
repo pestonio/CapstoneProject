@@ -18,7 +18,7 @@ import java.util.List;
  * Created by Peter Stone on 28/04/2017.
  */
 
-public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<CurrentLocationRecyclerAdapter.PlaceViewHolder> {
+public class LocationRecyclerAdapter extends RecyclerView.Adapter<LocationRecyclerAdapter.PlaceViewHolder> {
 
     public static class PlaceViewHolder extends RecyclerView.ViewHolder {
 
@@ -26,6 +26,7 @@ public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<Current
         TextView cardPlaceName;
         TextView cardPlaceRating;
         ImageView cardImageView;
+        ImageView deleteImageView;
 
         PlaceViewHolder(View view) {
             super(view);
@@ -33,13 +34,14 @@ public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<Current
             cardPlaceName = (TextView) view.findViewById(R.id.rc_current_place_name);
             cardPlaceRating = (TextView) view.findViewById(R.id.rating);
             cardImageView = (ImageView) view.findViewById(R.id.rc_current_place_image);
+            deleteImageView = (ImageView) view.findViewById(R.id.delete_saved_item);
         }
     }
 
     List<PlaceClass> mPlaces;
     Context mContext;
 
-    public CurrentLocationRecyclerAdapter(Context context, List<PlaceClass> places) {
+    public LocationRecyclerAdapter(Context context, List<PlaceClass> places) {
         this.mPlaces = places;
         this.mContext = context;
     }
@@ -58,6 +60,7 @@ public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<Current
     @Override
     public void onBindViewHolder(final PlaceViewHolder placeViewHolder, final int i) {
         String rating = "Rating: ";
+        placeViewHolder.deleteImageView.setVisibility(View.GONE);
         placeViewHolder.cardPlaceName.setText(mPlaces.get(i).mPlaceName);
         if (mPlaces.get(i).mPlaceRating != null) {
             placeViewHolder.cardPlaceRating.setText(rating.concat(mPlaces.get(i).mPlaceRating));
@@ -76,6 +79,7 @@ public class CurrentLocationRecyclerAdapter extends RecyclerView.Adapter<Current
                 intent.putExtra("place_photo", mPlaces.get(i).mPlaceImageUrl);
                 intent.putExtra("place_lat", mPlaces.get(i).mPlaceLat);
                 intent.putExtra("place_long", mPlaces.get(i).mPlaceLong);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 mContext.startActivity(intent);
             }
         });

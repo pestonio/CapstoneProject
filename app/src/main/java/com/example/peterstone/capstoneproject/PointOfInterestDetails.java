@@ -3,20 +3,29 @@ package com.example.peterstone.capstoneproject;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.peterstone.capstoneproject.SQL.SavedPlaceContract;
 import com.example.peterstone.capstoneproject.SQL.SavedPlacesProvider;
 import com.google.android.gms.common.ConnectionResult;
@@ -35,6 +44,22 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * Created by Peter Stone on 23/04/2017.
  */
@@ -46,7 +71,12 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
     private ImageView mPlaceImage;
     private RecyclerView mRecyclerView;
     private LatLng latLng;
+    private TextView mPoiWikiText;
     private String placeName;
+    private String mPlaceUrl;
+    private String mSearchedPlaceUrl;
+    private List<PlaceClass> mSearchedPlaceData;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,15 +84,17 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
         setContentView(R.layout.poi_detail_layout);
         Toolbar toolbar = (Toolbar) findViewById(R.id.location_detail_toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mPlaceImage = (ImageView) findViewById(R.id.location_detail_image);
+        mPoiWikiText = (TextView) findViewById(R.id.location_detail_desc);
+        mSearchedPlaceData = new ArrayList<>();
         TextView placeNameTextView = (TextView) findViewById(R.id.location_detail_name);
-        FloatingActionButton actionButton = (FloatingActionButton) findViewById(R.id.location_fab);
+        final FloatingActionButton actionButton = (FloatingActionButton) findViewById(R.id.location_fab);
         mRecyclerView = (RecyclerView) findViewById(R.id.location_detail_recycler_view);
         final Intent intent = getIntent();
         int origin = intent.getIntExtra("origin", 0);
         if (origin == R.integer.ORIGIN_CURRENT_LOCATION) {
             placeName = intent.getStringExtra("place_name");
+            getSupportActionBar().setTitle(placeName);
             placeNameTextView.setText(placeName);
             Picasso.with(this).load(intent.getStringExtra("place_photo")).into(mPlaceImage);
             final double placeLat = intent.getDoubleExtra("place_lat", 0);
@@ -77,7 +109,6 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
             fragmentTransaction.replace(R.id.map_fragment, supportMapFragment);
             fragmentTransaction.commit();
             final ContentValues values = new ContentValues();
-//            final SQLiteDatabase sqLiteDatabase = new SavedPlacesDBHelper(PointOfInterestDetails.this).getWritableDatabase();
             //TODO AsyncTask for Wiki
             actionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -87,22 +118,99 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LAT, placeLat);
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG, placeLong);
                     Uri uri = getContentResolver().insert(SavedPlacesProvider.CONTENT_URI, values);
-//                    sqLiteDatabase.insert(SavedPlaceContract.SavedPlaceEntry.TABLE_NAME, null, values);
-//                    sqLiteDatabase.close();
+                    actionButton.setVisibility(View.INVISIBLE);
+                    //TODO SharedPreferences, check if in DB already, change FAB to delete.
                     Log.i(TAG, "Item Saved: " + values);
-                    Toast.makeText(PointOfInterestDetails.this, "Point Of Interest added to your saved places.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(PointOfInterestDetails.this, R.string.saved_toast, Toast.LENGTH_SHORT).show();
                     //TODO save to DB.
                 }
             });
+            String baseUrl = "https://en.wikipedia.org/w/api.php?format=json&action=query&titles=";
+            String queryParams = "&redirects&prop=extracts&exintro&explaintext";
+            mPlaceUrl = baseUrl.concat(placeName).concat(queryParams).replaceAll(" ", "%20");
+            new GetWikiInfoTask().execute();
         } else if (origin == R.integer.ORIGIN_GOOGLE_SEARCH) {
-
-            actionButton.setVisibility(View.GONE);
-            placeNameTextView.setText(intent.getStringExtra("place_name"));
+            actionButton.setVisibility(View.INVISIBLE);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            FrameLayout mapFragment = (FrameLayout) findViewById(R.id.map_fragment);
+            mapFragment.setVisibility(View.GONE);
+            String searchedPlaceName = intent.getStringExtra("place_name");
+            getSupportActionBar().setTitle(searchedPlaceName);
+            placeNameTextView.setText(searchedPlaceName);
             buildGoogleApi();
             placePhotosAsync(intent.getStringExtra("place_id"));
-            //TODO AsyncTask for Wiki
+            String url = urlBuilder(searchedPlaceName);
+            getSearchedPlaceData(url);
             //TODO Progress Bar
-            //TODO JSON attractions, recycler view.
+        }
+    }
+
+    private String urlBuilder(String place) {
+        final String BASE_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json?";
+        final String QUERY = "query";
+        final String API_KEY = "key";
+        Uri builtUri = Uri.parse(BASE_URL)
+                .buildUpon()
+                .appendQueryParameter(QUERY, place.concat(" attraction"))
+                .appendQueryParameter(API_KEY, getString(R.string.webservice_api_key))
+                .build();
+        return builtUri.toString();
+    }
+
+
+    private void getSearchedPlaceData(String url) {
+        Log.i(TAG, "Passed URL: " + url);
+        if (url != null) {
+            final RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+            JsonObjectRequest jsonInitialRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    try {
+                        JSONArray initialJsonArray = response.getJSONArray("results");
+                        for (int i = 0; i < initialJsonArray.length(); i++) {
+                            JSONObject placeObject = initialJsonArray.getJSONObject(i);
+                            String placeName = placeObject.getString("name");
+                            String placeId = placeObject.getString("place_id");
+                            JSONObject placeGeometry = placeObject.getJSONObject("geometry");
+                            JSONObject placeLocation = placeGeometry.getJSONObject("location");
+                            double placeLat = placeLocation.getDouble("lat");
+                            double placeLong = placeLocation.getDouble("lng");
+                            String rating = null;
+                            if (placeObject.has("rating")) {
+                                rating = placeObject.getString("rating");
+                            }
+                            String address = placeObject.getString("formatted_address");
+                            Log.i(TAG, "place name = " + placeName);
+                            if (placeObject.has("photos")) {
+                                JSONArray photoArray = placeObject.getJSONArray("photos");
+                                JSONObject photoRef = photoArray.getJSONObject(0);
+                                String photoReference = photoRef.getString("photo_reference");
+                                mSearchedPlaceUrl = getString(R.string.place_api_photo_url) + photoReference + getString(R.string.api_key_parameter) + getString(R.string.webservice_api_key);
+                            } else {
+                                mSearchedPlaceUrl = null;
+                            }
+                            mSearchedPlaceData.add(new PlaceClass(placeName, placeId, rating, address, mSearchedPlaceUrl, placeLat, placeLong));
+                        }
+                        LocationRecyclerAdapter adapter = new LocationRecyclerAdapter(getApplicationContext(), mSearchedPlaceData);
+                        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+                        mRecyclerView.setLayoutManager(linearLayoutManager);
+                        mRecyclerView.setHasFixedSize(true);
+                        mRecyclerView.setNestedScrollingEnabled(false);
+                        mRecyclerView.setAdapter(adapter);
+                    } catch (JSONException e) {
+                        Toast.makeText(getApplicationContext(), "Server data currently unavailable. Please try again later.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }, new Response.ErrorListener() {
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e(TAG, "Volley Error: " + error);
+                }
+            });
+            queue.add(jsonInitialRequest);
+        } else {
+            Log.e(TAG, "Get Location Data Failed - URL is Null");
         }
     }
 
@@ -173,5 +281,82 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
     public void onMapReady(GoogleMap googleMap) {
         Log.i(TAG, "onMapReady Camera: " + googleMap.getCameraPosition().toString());
         googleMap.addMarker(new MarkerOptions().position(latLng).title(placeName));
+    }
+
+    private class GetWikiInfoTask extends AsyncTask<Void, Void, String> {
+
+        @Override
+        protected String doInBackground(Void... params) {
+            HttpsURLConnection urlConnection = null;
+            BufferedReader reader = null;
+            JSONObject jsonObject = null;
+            String extractString = null;
+            try {
+                URL url = new URL(mPlaceUrl);
+                Log.i(TAG, "Wiki URL: " + url);
+                urlConnection = (HttpsURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuilder builder = new StringBuilder();
+                if (inputStream == null) {
+                    return null;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+                if (builder.length() == 0) {
+                    return null;
+                }
+                String response = builder.toString();
+                try {
+                    jsonObject = new JSONObject(response);
+                    JSONObject queryObject = jsonObject.getJSONObject("query");
+                    JSONObject pageObject = queryObject.getJSONObject("pages");
+                    Iterator<?> iterator = pageObject.keys();
+                    while (iterator.hasNext()) {
+                        String key = (String) iterator.next();
+                        JSONObject extractObject = pageObject.getJSONObject(key);
+                        if (extractObject.has("extract")) {
+                            extractString = extractObject.getString("extract");
+                        } else {
+                            extractString = getString(R.string.wiki_data_unavailable);
+                        }
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return extractString;
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String extract) {
+            super.onPostExecute(extract);
+            mPoiWikiText.setText(extract);
+
+            Log.i(TAG, "JSON Response: " + extract);
+        }
     }
 }

@@ -1,7 +1,6 @@
 package com.example.peterstone.capstoneproject.SQL;
 
 import android.content.ContentProvider;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
@@ -27,8 +26,8 @@ public class SavedPlacesProvider extends ContentProvider {
     private static final String BASE_PATH = "places";
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH);
 
-    public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/places";
-    public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/place";
+//    public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/places";
+//    public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/place";
 
     private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     static {
@@ -90,7 +89,16 @@ public class SavedPlacesProvider extends ContentProvider {
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+        int uriType = sURIMatcher.match(uri);
+        SQLiteDatabase database = placesDatabase.getWritableDatabase();
+        int rowsDeleted = 0;
+        switch (uriType){
+            case PLACES:
+                rowsDeleted = database.delete(SavedPlaceContract.SavedPlaceEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return rowsDeleted;
     }
 
     @Override

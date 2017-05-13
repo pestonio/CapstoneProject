@@ -15,6 +15,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -36,7 +37,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.peterstone.capstoneproject.CurrentLocationRecyclerAdapter;
+import com.example.peterstone.capstoneproject.LocationRecyclerAdapter;
 import com.example.peterstone.capstoneproject.PlaceClass;
 import com.example.peterstone.capstoneproject.PointOfInterestDetails;
 import com.example.peterstone.capstoneproject.R;
@@ -87,6 +88,9 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
     private SQLiteDatabase mDatabase;
     private ContentValues mValues;
     private static final int PLACE_AUTOCOMPLETE_REQUEST = 1;
+    private Parcelable mListState;
+    private LinearLayoutManager mLinearLayoutManager;
+    private static final String LIST_STATE_KEY = "list_key";
 
     public CurrentLocationFragment() {
         //Empty constructor.
@@ -128,27 +132,32 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
         NetworkInfo activeNetwork = cMan.getActiveNetworkInfo();
         isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
         mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.current_place_recycler_view);
-        LinearLayoutManager linerLayoutManager = new LinearLayoutManager(getActivity());
-        mRecyclerView.setLayoutManager(linerLayoutManager);
-        mRecyclerView.setHasFixedSize(true);
-        if (isConnected) {
-            ImageView connectionIcon = (ImageView) getActivity().findViewById(R.id.no_connection);
-            TextView connectionText = (TextView) getActivity().findViewById(R.id.no_connection_text);
-            connectionIcon.setVisibility(View.GONE);
-            connectionText.setVisibility(View.GONE);
-            buildGoogleApi();
-            if (mApiClient != null) {
-                mApiClient.connect();
+        if (mListState != null){
+            mLinearLayoutManager.onRestoreInstanceState(mListState);
+            Log.i(TAG, "State Restored");
+        }else {
+            mLinearLayoutManager = new LinearLayoutManager(getActivity());
+            mRecyclerView.setLayoutManager(mLinearLayoutManager);
+            mRecyclerView.setHasFixedSize(true);
+            if (isConnected) {
+                ImageView connectionIcon = (ImageView) getActivity().findViewById(R.id.no_connection);
+                TextView connectionText = (TextView) getActivity().findViewById(R.id.no_connection_text);
+                connectionIcon.setVisibility(View.GONE);
+                connectionText.setVisibility(View.GONE);
+                buildGoogleApi();
+                if (mApiClient != null) {
+                    mApiClient.connect();
+                }
             }
-        }
-        mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setInterval(10 * 1000)
-                .setFastestInterval(1000);
-        if (!isConnected) {
-            mRecyclerView.setVisibility(View.GONE);
-            currentCountry.setVisibility(View.GONE);
-            currentTownCity.setVisibility(View.GONE);
+            mLocationRequest = LocationRequest.create()
+                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                    .setInterval(10 * 1000)
+                    .setFastestInterval(1000);
+            if (!isConnected) {
+                mRecyclerView.setVisibility(View.GONE);
+                currentCountry.setVisibility(View.GONE);
+                currentTownCity.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -283,13 +292,13 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
         }
     }
 
-    private String urlBuilder(String url) {
+    private String urlBuilder(String place) {
         final String BASE_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json?";
         final String QUERY = "query";
         final String API_KEY = "key";
         Uri builtUri = Uri.parse(BASE_URL)
                 .buildUpon()
-                .appendQueryParameter(QUERY, url.concat(" attraction"))
+                .appendQueryParameter(QUERY, place.concat(" attraction"))
                 .appendQueryParameter(API_KEY, getString(R.string.webservice_api_key))
                 .build();
         return builtUri.toString();
@@ -339,7 +348,7 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                             Log.i(TAG, "SQL Entry is: " + mValues);
                         }
                         mDatabase.close();
-                        CurrentLocationRecyclerAdapter adapter = new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
+                        LocationRecyclerAdapter adapter = new LocationRecyclerAdapter(getActivity(), mPlaceData);
                         mRecyclerView.setAdapter(adapter);
                         Log.i(TAG, "onResponse Array Data = " + mPlaceData);
                         if (mPlaceData.isEmpty()) {
@@ -394,8 +403,15 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                 sqlDatabase.close();
             }
         }).start();
-        CurrentLocationRecyclerAdapter adapter = new CurrentLocationRecyclerAdapter(getActivity(), mPlaceData);
+        LocationRecyclerAdapter adapter = new LocationRecyclerAdapter(getActivity(), mPlaceData);
         mRecyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mListState = mLinearLayoutManager.onSaveInstanceState();
+        outState.putParcelable(LIST_STATE_KEY, mListState);
     }
 
 }
