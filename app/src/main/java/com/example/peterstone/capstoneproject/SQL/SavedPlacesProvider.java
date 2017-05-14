@@ -49,8 +49,8 @@ public class SavedPlacesProvider extends ContentProvider {
             case PLACES:
                 cursor = placesDatabase.getReadableDatabase().query(SavedPlaceContract.SavedPlaceEntry.TABLE_NAME,
                         projection,
-                        null,
-                        null,
+                        selection,
+                        selectionArgs,
                         null,
                         null,
                         null);
@@ -72,7 +72,6 @@ public class SavedPlacesProvider extends ContentProvider {
         int uriType = sURIMatcher.match(uri);
         SQLiteDatabase database = placesDatabase.getWritableDatabase();
         Uri returnUri = null;
-
         switch (uriType){
             case PLACES:
                 long id = database.insert(SavedPlaceContract.SavedPlaceEntry.TABLE_NAME, null, values);

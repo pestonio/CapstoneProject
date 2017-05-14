@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -28,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,6 +93,7 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
     private Parcelable mListState;
     private LinearLayoutManager mLinearLayoutManager;
     private static final String LIST_STATE_KEY = "list_key";
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     public CurrentLocationFragment() {
         //Empty constructor.
@@ -109,8 +112,6 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
         mValues = new ContentValues();
         currentTownCity = (TextView) getActivity().findViewById(R.id.current_town_city);
         currentCountry = (TextView) getActivity().findViewById(R.id.current_country);
-        currentTownCity.setText("PlaceHolder Town");
-        currentCountry.setText("PlaceHolder Country");
         LinearLayout search = (LinearLayout) getActivity().findViewById(R.id.search_view);
         search.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,10 +133,10 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
         NetworkInfo activeNetwork = cMan.getActiveNetworkInfo();
         isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
         mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.current_place_recycler_view);
-        if (mListState != null){
+        if (mListState != null) {
             mLinearLayoutManager.onRestoreInstanceState(mListState);
             Log.i(TAG, "State Restored");
-        }else {
+        } else {
             mLinearLayoutManager = new LinearLayoutManager(getActivity());
             mRecyclerView.setLayoutManager(mLinearLayoutManager);
             mRecyclerView.setHasFixedSize(true);
@@ -148,12 +149,21 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                 if (mApiClient != null) {
                     mApiClient.connect();
                 }
+                swipeRefreshLayout = (SwipeRefreshLayout) getActivity().findViewById(R.id.swipe_refresh_layout);
+                swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        getUserLocation();
+                    }
+                });
             }
             mLocationRequest = LocationRequest.create()
                     .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                     .setInterval(10 * 1000)
                     .setFastestInterval(1000);
             if (!isConnected) {
+                ProgressBar progressBar = (ProgressBar) getActivity().findViewById(R.id.current_progress_bar);
+                progressBar.setVisibility(View.INVISIBLE);
                 mRecyclerView.setVisibility(View.GONE);
                 currentCountry.setVisibility(View.GONE);
                 currentTownCity.setVisibility(View.GONE);
@@ -233,6 +243,8 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
             LOCATION_PERMISSION_GRANTED = true;
             if (isConnected && mApiClient != null) {
                 mApiClient.connect();
+            }else {
+                buildGoogleApi();
             }
             Log.i(TAG, "Permission Granted!");
         } else {
@@ -290,6 +302,7 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
         if (currentLocation == null && mApiClient.isConnected()) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, this);
         }
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private String urlBuilder(String place) {
@@ -350,6 +363,8 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                         mDatabase.close();
                         LocationRecyclerAdapter adapter = new LocationRecyclerAdapter(getActivity(), mPlaceData);
                         mRecyclerView.setAdapter(adapter);
+                        ProgressBar progressBar = (ProgressBar) getActivity().findViewById(R.id.current_progress_bar);
+                        progressBar.setVisibility(View.INVISIBLE);
                         Log.i(TAG, "onResponse Array Data = " + mPlaceData);
                         if (mPlaceData.isEmpty()) {
                             Log.e(TAG, "Place Data is empty");
@@ -376,42 +391,39 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
         final SQLiteDatabase sqlDatabase = new PlacesDBHelper(getActivity()).getReadableDatabase();
         String[] projection = {PlaceContract.PlaceEntry.COLUMN_PLACE_NAME, PlaceContract.PlaceEntry.COLUMN_PLACE_ID, PlaceContract.PlaceEntry.COLUMN_PLACE_RATING, PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS, PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL, PlaceContract.PlaceEntry.COLUMN_PLACE_LAT, PlaceContract.PlaceEntry.COLUMN_PLACE_LONG};
         final Cursor cursor = sqlDatabase.query(PlaceContract.PlaceEntry.TABLE_NAME, projection, null, null, null, null, null, null);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                cursor.moveToFirst();
-                do {
-                    int placeNameColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME);
-                    String placeName = cursor.getString(placeNameColumn);
-                    int placeIdColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ID);
-                    String placeId = cursor.getString(placeIdColumn);
-                    int placeRatingColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_RATING);
-                    String placeRating = cursor.getString(placeRatingColumn);
-                    int placeAddressColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS);
-                    String placeAddress = cursor.getString(placeAddressColumn);
-                    int placePhotoColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL);
-                    String placePhotoUrl = cursor.getString(placePhotoColumn);
-                    int placeLatColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_LAT);
-                    double placeLat = cursor.getDouble(placeLatColumn);
-                    int placeLongColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_LONG);
-                    double placeLng = cursor.getDouble(placeLongColumn);
-                    mPlaceData.add(new PlaceClass(placeName, placeId, placeRating, placeAddress, placePhotoUrl, placeLat, placeLng));
-                    Log.i(TAG, "SQL saved place is: " + mPlaceData);
-                }
-                while (cursor.moveToNext());
-                cursor.close();
-                sqlDatabase.close();
-            }
-        }).start();
+        cursor.moveToFirst();
+        do {
+            int placeNameColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_NAME);
+            String placeName = cursor.getString(placeNameColumn);
+            int placeIdColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ID);
+            String placeId = cursor.getString(placeIdColumn);
+            int placeRatingColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_RATING);
+            String placeRating = cursor.getString(placeRatingColumn);
+            int placeAddressColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_ADDRESS);
+            String placeAddress = cursor.getString(placeAddressColumn);
+            int placePhotoColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_IMAGE_URL);
+            String placePhotoUrl = cursor.getString(placePhotoColumn);
+            int placeLatColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_LAT);
+            double placeLat = cursor.getDouble(placeLatColumn);
+            int placeLongColumn = cursor.getColumnIndexOrThrow(PlaceContract.PlaceEntry.COLUMN_PLACE_LONG);
+            double placeLng = cursor.getDouble(placeLongColumn);
+            mPlaceData.add(new PlaceClass(placeName, placeId, placeRating, placeAddress, placePhotoUrl, placeLat, placeLng));
+            Log.i(TAG, "SQL saved place is: " + mPlaceData);
+        }
+        while (cursor.moveToNext());
+        cursor.close();
+        sqlDatabase.close();
         LocationRecyclerAdapter adapter = new LocationRecyclerAdapter(getActivity(), mPlaceData);
         mRecyclerView.setAdapter(adapter);
+        ProgressBar progressBar = (ProgressBar) getActivity().findViewById(R.id.current_progress_bar);
+        progressBar.setVisibility(View.INVISIBLE);
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        mListState = mLinearLayoutManager.onSaveInstanceState();
-        outState.putParcelable(LIST_STATE_KEY, mListState);
+            mListState = mLinearLayoutManager.onSaveInstanceState();
+            outState.putParcelable(LIST_STATE_KEY, mListState);
     }
 
 }

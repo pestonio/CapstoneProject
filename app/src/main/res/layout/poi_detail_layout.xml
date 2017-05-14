@@ -1,105 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
 
-
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/location_detail_toolbar"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:background="@drawable/toolbar_background"
-        android:elevation="6dp"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
-
-
-    <ImageView
-        android:id="@+id/location_detail_image"
-        android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:layout_alignParentTop="true"
-        android:scaleType="centerCrop"
-        android:src="@drawable/placeholder" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/location_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginEnd="17dp"
-        android:layout_marginRight="17dp"
-        android:layout_marginTop="222dp"
-        android:clickable="true"
-        android:src="@drawable/ic_add_white_24dp"
-        app:fabSize="normal" />
-
-    <TextView
-        android:id="@+id/location_detail_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/location_detail_image"
-        android:layout_marginLeft="24dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_toLeftOf="@+id/location_fab"
-        android:layout_toStartOf="@+id/location_fab"
-        tools:text="Location Name" />
-
-    <TextView
-        android:id="@+id/location_detail_desc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/location_fab"
-        android:layout_alignLeft="@+id/location_detail_name"
-        android:layout_alignRight="@+id/location_fab"
-        android:layout_alignStart="@+id/location_detail_name"
-        android:layout_below="@+id/location_detail_name"
-        android:layout_marginTop="10dp"
-        android:maxLines="3"
-        android:text="@string/mock_text" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/location_detail_desc"
-        android:layout_alignLeft="@+id/location_detail_desc"
-        android:layout_alignRight="@+id/location_detail_desc"
-        android:layout_alignStart="@+id/location_detail_desc"
-        android:layout_below="@+id/location_detail_desc"
-        android:layout_marginTop="10dp"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <FrameLayout
-            android:id="@+id/map_fragment"
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/location_detail_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="175dp">
-            <ProgressBar
-                android:id="@+id/map_progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"/>
-        </FrameLayout>
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/toolbar_background"
+            android:elevation="6dp"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/location_detail_recycler_view"
+
+        <ImageView
+            android:id="@+id/location_detail_image"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="250dp"
+            android:layout_alignParentTop="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/placeholder" />
 
-    </LinearLayout>
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/location_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="17dp"
+            android:layout_marginRight="17dp"
+            android:layout_marginTop="222dp"
+            android:clickable="true"
+            android:src="@drawable/ic_add_white_24dp"
+            app:fabSize="normal" />
 
-</RelativeLayout>
+        <TextView
+            android:id="@+id/location_detail_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/location_detail_image"
+            android:layout_marginLeft="24dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:layout_toLeftOf="@+id/location_fab"
+            android:layout_toStartOf="@+id/location_fab"
+            tools:text="Location Name" />
+        <TextView
+            android:id="@+id/place_address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Place Address"
+            android:layout_marginTop="10dp"
+            android:layout_below="@+id/location_detail_name"
+            android:layout_alignLeft="@+id/location_detail_name"
+            android:layout_alignStart="@+id/location_detail_name"
+            android:layout_alignRight="@+id/location_detail_name"
+            android:layout_alignEnd="@+id/location_detail_name" />
+
+        <TextView
+            android:id="@+id/location_detail_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            tools:text="@string/mock_text"
+            android:layout_below="@+id/place_address"
+            android:layout_alignLeft="@+id/place_address"
+            android:layout_alignStart="@+id/place_address"
+            android:layout_alignRight="@+id/location_fab"
+            android:layout_alignEnd="@+id/location_fab" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@+id/location_detail_desc"
+            android:layout_alignLeft="@+id/location_detail_desc"
+            android:layout_alignRight="@+id/location_detail_desc"
+            android:layout_alignStart="@+id/location_detail_desc"
+            android:layout_below="@+id/location_detail_desc"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/map_fragment"
+                android:layout_width="match_parent"
+                android:layout_height="175dp">
+
+                <ProgressBar
+                    android:id="@+id/map_progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/location_detail_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <ProgressBar
+                    android:id="@+id/rc_progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center" />
+            </FrameLayout>
+
+
+        </LinearLayout>
+
+    </RelativeLayout>
 </android.support.v4.widget.NestedScrollView>

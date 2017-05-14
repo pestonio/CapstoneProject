@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +48,8 @@ public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlaces
     @Override
     public void onBindViewHolder(final SavedPlaceViewHolder placeViewHolder, final int i) {
         String rating = "Rating: ";
+        placeViewHolder.cardPlaceName.setMaxLines(1);
+        placeViewHolder.cardPlaceName.setEllipsize(TextUtils.TruncateAt.END);
         placeViewHolder.cardPlaceName.setText(mPlaces.get(i).mPlaceName);
         if (mPlaces.get(i).mPlaceRating != null) {
             placeViewHolder.cardPlaceRating.setText(rating.concat(mPlaces.get(i).mPlaceRating));
@@ -63,6 +66,7 @@ public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlaces
                 intent.putExtra("origin", R.integer.ORIGIN_CURRENT_LOCATION);
                 intent.putExtra("place_name", mPlaces.get(i).mPlaceName);
                 intent.putExtra("place_photo", mPlaces.get(i).mPlaceImageUrl);
+                intent.putExtra("place_address", mPlaces.get(i).mPlaceAddress);
                 intent.putExtra("place_lat", mPlaces.get(i).mPlaceLat);
                 intent.putExtra("place_long", mPlaces.get(i).mPlaceLong);
                 mContext.startActivity(intent);

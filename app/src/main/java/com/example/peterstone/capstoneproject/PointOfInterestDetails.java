@@ -2,6 +2,7 @@ package com.example.peterstone.capstoneproject;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,10 +14,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,6 +79,8 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
     private String mPlaceUrl;
     private String mSearchedPlaceUrl;
     private List<PlaceClass> mSearchedPlaceData;
+    private ProgressBar mProgressBar;
+    private Boolean isClicked = false;
 
 
     @Override
@@ -87,15 +92,22 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
         mPlaceImage = (ImageView) findViewById(R.id.location_detail_image);
         mPoiWikiText = (TextView) findViewById(R.id.location_detail_desc);
         mSearchedPlaceData = new ArrayList<>();
+        mProgressBar = (ProgressBar) findViewById(R.id.rc_progress_bar);
         TextView placeNameTextView = (TextView) findViewById(R.id.location_detail_name);
+        TextView placeAddress = (TextView) findViewById(R.id.place_address);
         final FloatingActionButton actionButton = (FloatingActionButton) findViewById(R.id.location_fab);
         mRecyclerView = (RecyclerView) findViewById(R.id.location_detail_recycler_view);
         final Intent intent = getIntent();
         int origin = intent.getIntExtra("origin", 0);
         if (origin == R.integer.ORIGIN_CURRENT_LOCATION) {
             placeName = intent.getStringExtra("place_name");
+            boolean isSaved = checkIfSaved(placeName);
+            if (isSaved) {
+                actionButton.setVisibility(View.INVISIBLE);
+            }
             getSupportActionBar().setTitle(placeName);
             placeNameTextView.setText(placeName);
+            placeAddress.setText(intent.getStringExtra("place_address"));
             Picasso.with(this).load(intent.getStringExtra("place_photo")).into(mPlaceImage);
             final double placeLat = intent.getDoubleExtra("place_lat", 0);
             final double placeLong = intent.getDoubleExtra("place_long", 0);
@@ -108,13 +120,14 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
             supportMapFragment.getMapAsync(this);
             fragmentTransaction.replace(R.id.map_fragment, supportMapFragment);
             fragmentTransaction.commit();
+            mProgressBar.setVisibility(View.INVISIBLE);
             final ContentValues values = new ContentValues();
-            //TODO AsyncTask for Wiki
             actionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_NAME, placeName);
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_IMAGE_URL, intent.getStringExtra("place_photo"));
+                    values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_ADDRESS, intent.getStringExtra("place_address"));
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LAT, placeLat);
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG, placeLong);
                     Uri uri = getContentResolver().insert(SavedPlacesProvider.CONTENT_URI, values);
@@ -122,7 +135,6 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
                     //TODO SharedPreferences, check if in DB already, change FAB to delete.
                     Log.i(TAG, "Item Saved: " + values);
                     Toast.makeText(PointOfInterestDetails.this, R.string.saved_toast, Toast.LENGTH_SHORT).show();
-                    //TODO save to DB.
                 }
             });
             String baseUrl = "https://en.wikipedia.org/w/api.php?format=json&action=query&titles=";
@@ -143,6 +155,18 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
             getSearchedPlaceData(url);
             //TODO Progress Bar
         }
+    }
+
+    private boolean checkIfSaved(String placeName) {
+        String selection = SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_NAME + " LIKE ? ";
+        String[] selectionArgs = {placeName};
+        Cursor cursor = this.getContentResolver().query(SavedPlacesProvider.CONTENT_URI, null, selection, selectionArgs, null);
+        if (cursor.getCount() == 0) {
+            cursor.close();
+            return false;
+        } else
+            cursor.close();
+        return true;
     }
 
     private String urlBuilder(String place) {
@@ -197,6 +221,7 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
                         mRecyclerView.setHasFixedSize(true);
                         mRecyclerView.setNestedScrollingEnabled(false);
                         mRecyclerView.setAdapter(adapter);
+                        mProgressBar.setVisibility(View.INVISIBLE);
                     } catch (JSONException e) {
                         Toast.makeText(getApplicationContext(), "Server data currently unavailable. Please try again later.", Toast.LENGTH_SHORT).show();
                     }
@@ -354,7 +379,21 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
         @Override
         protected void onPostExecute(String extract) {
             super.onPostExecute(extract);
+            mPoiWikiText.setMaxLines(3);
+            mPoiWikiText.setEllipsize(TextUtils.TruncateAt.END);
             mPoiWikiText.setText(extract);
+            mPoiWikiText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!isClicked) {
+                        mPoiWikiText.setMaxLines(Integer.MAX_VALUE);
+                        isClicked = true;
+                    } else {
+                        mPoiWikiText.setMaxLines(3);
+                        isClicked = false;
+                    }
+                }
+            });
 
             Log.i(TAG, "JSON Response: " + extract);
         }

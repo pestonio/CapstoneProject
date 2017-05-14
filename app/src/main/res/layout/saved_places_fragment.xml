@@ -12,9 +12,11 @@
         android:tint="#616161"
          />
     <TextView
+        android:id="@+id/empty_saved_places_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nothing here! Why not add a location?"
+        android:text="@string/empty_saved_places"
+        android:contentDescription="@string/empty_saved_places"
         android:layout_centerInParent="true"
         android:layout_marginTop="24dp"
         android:layout_below="@id/empty_saved_places_icon"/>

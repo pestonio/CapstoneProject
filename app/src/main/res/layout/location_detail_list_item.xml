@@ -30,15 +30,7 @@
                     android:scaleType="centerCrop"
                     android:src="@drawable/placeholder" />
 
-                <ProgressBar
-                android:id="@+id/current_progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                />
-
             </RelativeLayout>
-
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -52,7 +44,6 @@
                     android:layout_marginStart="20dp"
                     tools:text="Location Name"
                     android:paddingTop="4dp"
-                    android:maxLines="1"
                     android:layout_alignParentTop="true"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true">
