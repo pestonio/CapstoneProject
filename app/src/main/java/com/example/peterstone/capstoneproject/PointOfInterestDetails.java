@@ -133,7 +133,6 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_RATING, intent.getStringExtra("place_rating"));
                     Uri uri = getContentResolver().insert(SavedPlacesProvider.CONTENT_URI, values);
                     actionButton.setVisibility(View.INVISIBLE);
-                    //TODO SharedPreferences, check if in DB already, change FAB to delete.
                     Log.i(TAG, "Item Saved: " + values);
                     Toast.makeText(PointOfInterestDetails.this, R.string.saved_toast, Toast.LENGTH_SHORT).show();
                 }

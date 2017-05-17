@@ -253,7 +253,6 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
             Toast.makeText(getActivity(), "Without location permission, a large portion of functionality will be unavailable.", Toast.LENGTH_LONG).show();
             Log.i(TAG, "Permission Denied");
             LOCATION_PERMISSION_GRANTED = false;
-            //TODO adjust view to display information related to lack of permission.
         }
     }
 
