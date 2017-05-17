@@ -47,7 +47,7 @@ public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlaces
 
     @Override
     public void onBindViewHolder(final SavedPlaceViewHolder placeViewHolder, final int i) {
-        String rating = "Rating: ";
+        String rating = mContext.getString(R.string.rating);
         placeViewHolder.cardPlaceName.setMaxLines(1);
         placeViewHolder.cardPlaceName.setEllipsize(TextUtils.TruncateAt.END);
         placeViewHolder.cardPlaceName.setText(mPlaces.get(i).mPlaceName);

@@ -232,7 +232,7 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
                         mRecyclerView.setAdapter(adapter);
                         mProgressBar.setVisibility(View.INVISIBLE);
                     } catch (JSONException e) {
-                        Toast.makeText(getApplicationContext(), "Server data currently unavailable. Please try again later.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), R.string.no_server_response, Toast.LENGTH_SHORT).show();
                     }
                 }
             }, new Response.ErrorListener() {

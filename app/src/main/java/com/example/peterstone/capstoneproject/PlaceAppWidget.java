@@ -47,12 +47,12 @@ public class PlaceAppWidget extends AppWidgetProvider {
             cursor.close();
             int arrayPosition = new Random().nextInt(cursor.getCount());
             CharSequence currentPlace = places.get(arrayPosition);
-            CharSequence currentPlaceRating = "Rating: " + ratings.get(arrayPosition);
+            CharSequence currentPlaceRating = ratings.get(arrayPosition);
             String currentImageUrl = imageUrls.get(arrayPosition);
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.place_app_widget);
             views.setTextViewText(R.id.widget_place_name, currentPlace);
-            views.setTextViewText(R.id.widget_rating, currentPlaceRating);
+            views.setTextViewText(R.id.widget_rating, context.getString(R.string.widget_rating) + currentPlaceRating);
             if (currentImageUrl != null) {
                 Picasso.with(context).load(currentImageUrl).into(views, R.id.widget_image, new int[]{appWidgetId});
             } else {

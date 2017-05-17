@@ -60,7 +60,7 @@ public class LocationRecyclerAdapter extends RecyclerView.Adapter<LocationRecycl
 
     @Override
     public void onBindViewHolder(final PlaceViewHolder placeViewHolder, final int i) {
-        String rating = "Rating: ";
+        String rating = mContext.getString(R.string.rating);
         placeViewHolder.deleteImageView.setVisibility(View.GONE);
         placeViewHolder.cardPlaceName.setMaxLines(1);
         placeViewHolder.cardPlaceName.setEllipsize(TextUtils.TruncateAt.END);

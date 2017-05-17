@@ -24,4 +24,9 @@
     <string name="confirm_delete">Yes</string>
     <string name="deny_delete">No</string>
     <string name="toast_deleted">Item Deleted</string>
+    <string name="permission_rationale">Without location permission, a large portion of functionality will be unavailable.</string>
+    <string name="location_unavailable">Location Services currently unavailable. Check connection and settings.</string>
+    <string name="no_server_response">Server data currently unavailable. Please try again later.</string>
+    <string name="rating">Rating:</string>
+    <string name="widget_rating">Rating:</string>
 </resources>

@@ -5,7 +5,7 @@ android {
         config {
             keyAlias 'myKeystore'
             keyPassword 'Password123'
-            storeFile file('C:/Users/pesto/Documents/Android Projects/CapstoneProject/app/myKeystore.jks')
+            storeFile file('myKeystore.jks')
             storePassword 'Password321'
         }
     }
@@ -21,6 +21,7 @@ android {
     }
     buildTypes {
         release {
+            signingConfig signingConfigs.config
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

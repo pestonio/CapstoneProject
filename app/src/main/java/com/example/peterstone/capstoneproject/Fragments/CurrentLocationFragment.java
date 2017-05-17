@@ -250,7 +250,7 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
             Log.i(TAG, "Permission Granted!");
         } else {
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
-            Toast.makeText(getActivity(), "Without location permission, a large portion of functionality will be unavailable.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), R.string.permission_rationale, Toast.LENGTH_LONG).show();
             Log.i(TAG, "Permission Denied");
             LOCATION_PERMISSION_GRANTED = false;
         }
@@ -298,7 +298,7 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                     loadFromDatabase();
                 }
             } catch (IOException e) {
-                Toast.makeText(getActivity(), "Location Services currently unavailable. Check connection and settings.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), R.string.location_unavailable, Toast.LENGTH_SHORT).show();
             }
         }
         if (currentLocation == null && mApiClient.isConnected()) {
@@ -373,7 +373,7 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                         }
 
                     } catch (JSONException e) {
-                        Toast.makeText(getActivity(), "Server data currently unavailable. Please try again later.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), R.string.no_server_response, Toast.LENGTH_SHORT).show();
                     }
                 }
             }, new Response.ErrorListener() {
