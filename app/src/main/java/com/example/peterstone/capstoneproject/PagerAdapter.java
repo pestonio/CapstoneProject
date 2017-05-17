@@ -11,7 +11,7 @@ import com.example.peterstone.capstoneproject.Fragments.SavedPlacesFragment;
  * Created by Peter Stone on 17/04/2017.
  */
 
-public class PagerAdapter extends FragmentStatePagerAdapter {
+class PagerAdapter extends FragmentStatePagerAdapter {
 
     private int mNumOfTabs;
 

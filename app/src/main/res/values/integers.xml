@@ -2,7 +2,6 @@
 <resources>
     <integer name="ORIGIN_CURRENT_LOCATION">101</integer>
     <integer name="ORIGIN_GOOGLE_SEARCH">102</integer>
-    <integer name="ORIGIN_SEARCHED_POI">103</integer>
 
 
 </resources>

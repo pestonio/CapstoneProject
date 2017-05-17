@@ -128,7 +128,6 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
             }
         });
         mPlaceData = new ArrayList<>();
-        //TODO set placeholder text and image or pull from SP.
         ConnectivityManager cMan = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cMan.getActiveNetworkInfo();
         isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
@@ -181,6 +180,8 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                 intent.putExtra("origin", R.integer.ORIGIN_GOOGLE_SEARCH);
                 intent.putExtra("place_name", place.getAddress());
                 intent.putExtra("place_id", place.getId());
+                intent.putExtra("place_latlng", place.getLatLng());
+                mDatabase.close();
                 startActivity(intent);
             } else if (requestCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(getActivity(), data);
@@ -200,7 +201,7 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
     }
 
 
-    protected synchronized void buildGoogleApi() {
+    private synchronized void buildGoogleApi() {
         mApiClient = new GoogleApiClient
                 .Builder(getContext())
                 .addConnectionCallbacks(this)
@@ -279,7 +280,9 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
                 Log.i(TAG, "Current Location is: " + country + " " + locality);
                 placeInfo = locality + " " + country;
                 currentTownCity.setText(locality);
+                currentTownCity.setContentDescription(locality);
                 currentCountry.setText(country);
+                currentCountry.setContentDescription(country);
                 SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
                 String lastKnownLocation = sharedPreferences.getString("lastLocation", null);
 
@@ -411,8 +414,8 @@ public class CurrentLocationFragment extends Fragment implements GoogleApiClient
             Log.i(TAG, "SQL saved place is: " + mPlaceData);
         }
         while (cursor.moveToNext());
-        cursor.close();
         sqlDatabase.close();
+        cursor.close();
         LocationRecyclerAdapter adapter = new LocationRecyclerAdapter(getActivity(), mPlaceData);
         mRecyclerView.setAdapter(adapter);
         ProgressBar progressBar = (ProgressBar) getActivity().findViewById(R.id.current_progress_bar);

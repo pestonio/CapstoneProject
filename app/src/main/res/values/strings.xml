@@ -1,26 +1,27 @@
 <resources>
-    <string name="android_api_key">AIzaSyCZFHoZP6J4UruU1vuzyGIe4zagtHCX-qs</string>
-    <string name="webservice_api_key">AIzaSyD33VN5EOf2Gj7ySwV5Uy_js3TFdzJDaNQ</string>
+    <string name="android_api_key">ANDROID PLACES API KEY HERE</string><!--Android specific 'Places' API KEY-->
+    <string name="webservice_api_key">WEBSERVICE PLACES API KEY HERE</string><!--WebService 'Places' API KEY-->
+    <!--API Keys interchangeable if not restricted. Reason for two different keys is Android version originally restricted with SHA-1 fingerprint for security. WebService version unrestricted-->
     <string name="app_name">Charted</string>
-    <string name="mock_text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae quam metus. Nam malesuada ligula et diam tincidunt, vel sagittis sem dignissim. Curabitur maximus egestas nisi non luctus. Fusce congue ullamcorper elit sed finibus. Aenean suscipit leo enim, in pharetra est sollicitudin nec. Morbi id tincidunt sapien, ut mattis ligula. Phasellus ut mauris blandit, viverra metus luctus, sagittis enim. Pellentesque feugiat tempor lorem, euismod fringilla metus rutrum sagittis. Morbi pretium, dolor eu tincidunt fermentum, risus ante fringilla nibh, non blandit augue leo et quam. Aenean in bibendum nibh, a fringilla urna. Nunc sit amet purus rhoncus, feugiat erat non, placerat nisl. Nulla euismod est non augue faucibus viverra. Maecenas a ipsum non ex tincidunt. Sed a bibendum sem. Mauris porta, augue eu sagittis varius, neque turpis venenatis erat, non pellentesque justo nisi in massa. Curabitur hendrerit lacus rhoncus enim dictum, sit amet luctus tellus sagittis. Donec scelerisque arcu eu sollicitudin ornare.</string>
+    <string name="mock_text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae quam metus. Nam malesuada ligula et diam tincidunt, vel sagittis sem dignissim. Curabitur maximus egestas nisi non luctus. Fusce congue ullamcorper elit sed finibus. Aenean suscipit leo enim, in pharetra est sollicitudin nec. Morbi id tincidunt sapien, ut mattis ligula. Phasellus ut mauris blandit, viverra metus luctus, sagittis enim. </string>
     <string name="tab_title_current">Near You</string>
     <string name="tab_title_saved">Saved Places</string>
-    <string name="unknown_location">Location Currently Unavailable</string>
-    <string name="webservice_base_url">https://maps.googleapis.com/maps/api/place/textsearch/json?key=</string>
-    <string name="webservice_query"><![CDATA[&query=]]></string>
-    <string name="last_known_current_location">lastKnownLocation</string>
-    <string name="current_place_id">current_place_id</string>
-    <string name="current_location_image">current_location_image</string>
-    <string name="current_location_text">current_location_text</string>
-    <string name="permission_denied">Permission Denied</string>
-    <string name="current_location_preferences">current_location_preferences</string>
-    <string name="wiki_base_url"><![CDATA[https://en.wikipedia.org/w/api.php?format=json&action=query&titles=]]></string>
-    <string name="wiki_suffix_url"><![CDATA[&redirects&prop=extracts&exintro&explaintext]]></string>
-    <string name="place_api_photo_url"><![CDATA[https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=]]></string>
+    <string name="place_api_photo_url"><![CDATA[https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=]]></string>
     <string name="api_key_parameter"><![CDATA[&key=]]></string>
     <string name="wiki_data_unavailable">No Description Available</string>
     <string name="saved_toast">Point Of Interest Saved.</string>
     <string name="empty_saved_places">Nothing here! Why not add a location?</string>
-    <string name="search_text">Where To?</string>
+    <string name="search_text">Search for a location</string>
     <string name="no_connection">Check your connection</string>
+    <string name="no_connection_icon">No Connection</string>
+    <string name="delete_entry">Delete Entry?</string>
+    <string name="location_image">Location Image</string>
+    <string name="show_new_poi">Show new POI</string>
+    <string name="fab_save_text">Save a location</string>
+    <string name="no_places_saved_in_list">No places saved in list</string>
+    <string name="delete_dialog_title">Delete Entry?</string>
+    <string name="delete_dialog_confirm">Are you sure you want to delete this place?</string>
+    <string name="confirm_delete">Yes</string>
+    <string name="deny_delete">No</string>
+    <string name="toast_deleted">Item Deleted</string>
 </resources>

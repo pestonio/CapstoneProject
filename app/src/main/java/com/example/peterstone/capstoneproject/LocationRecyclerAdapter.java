@@ -39,8 +39,8 @@ public class LocationRecyclerAdapter extends RecyclerView.Adapter<LocationRecycl
         }
     }
 
-    List<PlaceClass> mPlaces;
-    Context mContext;
+    private List<PlaceClass> mPlaces;
+    private Context mContext;
 
     public LocationRecyclerAdapter(Context context, List<PlaceClass> places) {
         this.mPlaces = places;
@@ -65,6 +65,7 @@ public class LocationRecyclerAdapter extends RecyclerView.Adapter<LocationRecycl
         placeViewHolder.cardPlaceName.setMaxLines(1);
         placeViewHolder.cardPlaceName.setEllipsize(TextUtils.TruncateAt.END);
         placeViewHolder.cardPlaceName.setText(mPlaces.get(i).mPlaceName);
+        placeViewHolder.cardPlaceName.setContentDescription(mPlaces.get(i).mPlaceName);
         if (mPlaces.get(i).mPlaceRating != null) {
             placeViewHolder.cardPlaceRating.setText(rating.concat(mPlaces.get(i).mPlaceRating));
         }
@@ -81,6 +82,7 @@ public class LocationRecyclerAdapter extends RecyclerView.Adapter<LocationRecycl
                 intent.putExtra("place_name", mPlaces.get(i).mPlaceName);
                 intent.putExtra("place_photo", mPlaces.get(i).mPlaceImageUrl);
                 intent.putExtra("place_address", mPlaces.get(i).mPlaceAddress);
+                intent.putExtra("place_rating", mPlaces.get(i).mPlaceRating);
                 intent.putExtra("place_lat", mPlaces.get(i).mPlaceLat);
                 intent.putExtra("place_long", mPlaces.get(i).mPlaceLong);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

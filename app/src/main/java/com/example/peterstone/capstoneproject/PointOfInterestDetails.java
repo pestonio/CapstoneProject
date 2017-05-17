@@ -130,6 +130,7 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_ADDRESS, intent.getStringExtra("place_address"));
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LAT, placeLat);
                     values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG, placeLong);
+                    values.put(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_RATING, intent.getStringExtra("place_rating"));
                     Uri uri = getContentResolver().insert(SavedPlacesProvider.CONTENT_URI, values);
                     actionButton.setVisibility(View.INVISIBLE);
                     //TODO SharedPreferences, check if in DB already, change FAB to delete.
@@ -143,9 +144,19 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
             new GetWikiInfoTask().execute();
         } else if (origin == R.integer.ORIGIN_GOOGLE_SEARCH) {
             actionButton.setVisibility(View.INVISIBLE);
+            mPoiWikiText.setVisibility(View.GONE);
+            placeAddress.setVisibility(View.GONE);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             FrameLayout mapFragment = (FrameLayout) findViewById(R.id.map_fragment);
-            mapFragment.setVisibility(View.GONE);
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            latLng = intent.getParcelableExtra("place_latlng");
+            CameraPosition cameraPosition = new CameraPosition(latLng, 5, 0, 0);
+            GoogleMapOptions options = new GoogleMapOptions().liteMode(true).camera(cameraPosition);
+            SupportMapFragment supportMapFragment = SupportMapFragment.newInstance(options);
+            supportMapFragment.getMapAsync(this);
+            fragmentTransaction.replace(R.id.map_fragment, supportMapFragment);
+            fragmentTransaction.commit();
+//            mapFragment.setVisibility(View.GONE);
             String searchedPlaceName = intent.getStringExtra("place_name");
             getSupportActionBar().setTitle(searchedPlaceName);
             placeNameTextView.setText(searchedPlaceName);
@@ -153,7 +164,6 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
             placePhotosAsync(intent.getStringExtra("place_id"));
             String url = urlBuilder(searchedPlaceName);
             getSearchedPlaceData(url);
-            //TODO Progress Bar
         }
     }
 
@@ -164,8 +174,8 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
         if (cursor.getCount() == 0) {
             cursor.close();
             return false;
-        } else
-            cursor.close();
+        }
+        cursor.close();
         return true;
     }
 
@@ -239,7 +249,7 @@ public class PointOfInterestDetails extends AppCompatActivity implements GoogleA
         }
     }
 
-    protected synchronized void buildGoogleApi() {
+    private synchronized void buildGoogleApi() {
         mApiClient = new GoogleApiClient
                 .Builder(this)
                 .addConnectionCallbacks(this)

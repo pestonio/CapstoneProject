@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/swipe_refresh_layout"
     android:layout_width="match_parent"
@@ -18,23 +17,22 @@
             android:orientation="horizontal"
             android:padding="8dp">
 
-
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:contentDescription="@string/search_text"
                 android:src="@drawable/ic_search_black_48dp"
-                android:tint="#616161">
-            </ImageView>
+                android:tint="@color/iconTint" />
 
             <TextView
-                android:id="@+id/search_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="@string/search_text"
                 android:contentDescription="@string/search_text"
-                android:textColor="#616161"
-                android:textSize="18sp" />
+                android:text="@string/search_text"
+                android:textColor="@color/iconTint"
+                android:textSize="18sp"
+                android:textStyle="italic" />
         </LinearLayout>
 
         <View
@@ -42,7 +40,7 @@
             android:layout_height="1dp"
             android:layout_marginLeft="24dp"
             android:layout_marginRight="24dp"
-            android:background="#616161" />
+            android:background="@color/iconTint" />
 
         <TextView
             android:id="@+id/current_town_city"
@@ -50,6 +48,7 @@
             android:layout_height="wrap_content"
             android:padding="4dp"
             android:textSize="20sp"
+            android:textStyle="bold"
             tools:text="Current Town" />
 
         <TextView
@@ -58,6 +57,7 @@
             android:layout_height="wrap_content"
             android:padding="4dp"
             android:textSize="14sp"
+            android:textStyle="italic"
             tools:text="Current Country" />
 
         <RelativeLayout
@@ -69,6 +69,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
+                android:contentDescription="@string/no_connection_icon"
                 android:src="@drawable/ic_location_off_black_48dp"
                 android:tint="#616161" />
 
@@ -79,16 +80,14 @@
                 android:layout_below="@+id/no_connection"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="24dp"
-                android:text="@string/no_connection"
-                android:contentDescription="@string/no_connection"/>
-
+                android:contentDescription="@string/no_connection"
+                android:text="@string/no_connection" />
 
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/current_place_recycler_view"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-            </android.support.v7.widget.RecyclerView>
+                android:layout_height="wrap_content" />
 
             <ProgressBar
                 android:id="@+id/current_progress_bar"

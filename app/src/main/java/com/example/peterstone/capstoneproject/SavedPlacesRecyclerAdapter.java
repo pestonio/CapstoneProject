@@ -26,8 +26,8 @@ import java.util.List;
 
 public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlacesRecyclerAdapter.SavedPlaceViewHolder> {
 
-    List<PlaceClass> mPlaces;
-    Context mContext;
+    private List<PlaceClass> mPlaces;
+    private Context mContext;
 
     public SavedPlacesRecyclerAdapter(Context context, List<PlaceClass> places) {
         this.mPlaces = places;
@@ -51,6 +51,7 @@ public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlaces
         placeViewHolder.cardPlaceName.setMaxLines(1);
         placeViewHolder.cardPlaceName.setEllipsize(TextUtils.TruncateAt.END);
         placeViewHolder.cardPlaceName.setText(mPlaces.get(i).mPlaceName);
+        placeViewHolder.cardPlaceName.setContentDescription(mPlaces.get(i).mPlaceName);
         if (mPlaces.get(i).mPlaceRating != null) {
             placeViewHolder.cardPlaceRating.setText(rating.concat(mPlaces.get(i).mPlaceRating));
         }
@@ -76,9 +77,9 @@ public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlaces
             @Override
             public void onClick(View v) {
                 new AlertDialog.Builder(mContext)
-                        .setTitle("Delete Entry?")
-                        .setMessage("Are you sure you want to delete this place?")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        .setTitle(R.string.delete_dialog_title)
+                        .setMessage(R.string.delete_dialog_confirm)
+                        .setPositiveButton(R.string.confirm_delete, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String placeName = mPlaces.get(i).mPlaceName;
@@ -88,9 +89,9 @@ public class SavedPlacesRecyclerAdapter extends RecyclerView.Adapter<SavedPlaces
                                 mPlaces.remove(i);
                                 notifyItemRemoved(i);
                                 notifyItemRangeChanged(i, mPlaces.size());
-                                Toast.makeText(mContext, "Item Deleted", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(mContext, R.string.toast_deleted, Toast.LENGTH_SHORT).show();
                             }
-                        }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        }).setNegativeButton(R.string.deny_delete, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //do nothing.

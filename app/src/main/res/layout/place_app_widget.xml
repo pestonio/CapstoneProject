@@ -1,0 +1,72 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/widget_background"
+    android:padding="@dimen/widget_margin">
+
+
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <ImageView
+            android:contentDescription="@string/location_image"
+            android:id="@+id/widget_image"
+            android:layout_width="100dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            tools:src="@drawable/placeholder" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="1dp"
+        android:layout_height="60dp"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@+id/frameLayout"
+        android:layout_toRightOf="@+id/frameLayout"
+        android:background="#FFFFFF">
+
+    </FrameLayout>
+
+    <TextView
+        android:ellipsize="end"
+        android:id="@+id/widget_place_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="11dp"
+        android:layout_marginStart="11dp"
+        android:layout_marginTop="9dp"
+        android:layout_toEndOf="@+id/frameLayout"
+        android:layout_toRightOf="@+id/frameLayout"
+        android:maxLines="1"
+        android:textColor="#FFFFFF"
+        tools:text="Big Ben" />
+
+    <TextView
+        android:id="@+id/widget_rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/widget_refresh_button"
+        android:layout_alignLeft="@+id/widget_place_name"
+        android:layout_alignStart="@+id/widget_place_name"
+        android:textColor="#FFFFFF"
+        tools:text="Rating: 4.5" />
+
+    <ImageView
+        android:contentDescription="@string/show_new_poi"
+        android:id="@+id/widget_refresh_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/widget_place_name"
+        android:layout_marginEnd="24dp"
+        android:layout_marginRight="24dp"
+        android:src="@drawable/ic_navigate_next_white_36dp" />
+
+
+</RelativeLayout>

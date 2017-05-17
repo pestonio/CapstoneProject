@@ -50,7 +50,6 @@ public class SavedPlacesFragment extends Fragment implements LoaderManager.Loade
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.saved_places_fragment, container, false);
-        //TODO hide background icon + text, add delete functionality.
     }
 
     @Override
@@ -88,7 +87,9 @@ public class SavedPlacesFragment extends Fragment implements LoaderManager.Loade
                 String address = cursor.getString(addressIndex);
                 int placeLongIndex = cursor.getColumnIndexOrThrow(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_LONG);
                 double placeLong = cursor.getDouble(placeLongIndex);
-                mPlaceData.add(new PlaceClass(placeName, null, null, address, placePhoto, placeLat, placeLong));
+                int placeRatingIndex = cursor.getColumnIndexOrThrow(SavedPlaceContract.SavedPlaceEntry.COLUMN_PLACE_RATING);
+                String placeRating = cursor.getString(placeRatingIndex);
+                mPlaceData.add(new PlaceClass(placeName, null, placeRating, address, placePhoto, placeLat, placeLong));
             }
             while (cursor.moveToNext());
             if (mListState != null) {
