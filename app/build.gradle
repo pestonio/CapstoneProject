@@ -4,9 +4,9 @@ android {
     signingConfigs {
         config {
             keyAlias 'myKeystore'
-            keyPassword 'Password123'
+            keyPassword 'Optimusprime1985'
             storeFile file('myKeystore.jks')
-            storePassword 'Password321'
+            storePassword '@Morientes1985'
         }
     }
     compileSdkVersion 25
